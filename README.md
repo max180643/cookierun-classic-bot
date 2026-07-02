@@ -43,16 +43,6 @@ pip install -r requirements.txt
    ```
 
 3. **Ensure templates exist** — the `templates/` folder must contain the following detection images captured at 1280×720:
-   - `MAINMENU_1.png`
-   - `PURCHASE_ITEM_1.png`
-   - `GAME_START_1.png`
-   - `GAME_RELAY_1.png`
-   - `GAME_COMPLETE_1.png`
-   - `MYSTERY_BOX_1.png`
-   - `CONGRATULATIONS_1.png`
-   - `LEVEL_UP_1.png`
-   - `RELIC_COMPLETE_1.png`
-   - `RELIC_CLAIM_1.png`
 
 ## Usage
 

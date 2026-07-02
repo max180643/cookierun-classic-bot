@@ -28,6 +28,21 @@ STAGE_RELIC_COMPLETE_TEMPLATE = ["RELIC_COMPLETE_1.png"]
 STAGE_RELIC_CLAIM_TEMPLATE = ["RELIC_CLAIM_1.png"]
 
 # -------------------
+# BOOST TEMPLATES
+# -------------------
+BOOST_DOUBLE_COINS_TEMPLATE = ["BOOST_DOUBLE_COINS_1.png"]
+BOOST_15P_SCORE_BONUS_TEMPLATE = ["BOOST_15P_SCORE_BONUS_1.png"]
+BOOST_M15P_HP_DRAIN_TEMPLATE = ["BOOST_M15P_HP_DRAIN_1.png"]
+BOOST_REVIVE_ONCE_WITH_80HP_TEMPLATE = ["BOOST_REVIVE_ONCE_WITH_80HP_1.png"]
+BOOST_70P_CRUSH_CHANCE_TEMPLATE = ["BOOST_70P_CRUSH_CHANCE_1.png"]
+BOOST_17P_BASE_SPEED_TEMPLATE = ["BOOST_17P_BASE_SPEED_1.png"]
+BOOST_GOLD_COIN_MAGIC_TEMPLATE = ["BOOST_GOLD_COIN_MAGIC_1.png"]
+BOOST_M30P_COLLISION_DAMAGE_TEMPLATE = ["BOOST_M30P_COLLISION_DAMAGE_1.png"]
+BOOST_20P_HP_FROM_POTIONS_TEMPLATE = ["BOOST_20P_HP_FROM_POTIONS_1.png"]
+BOOST_MAGNETIC_AURA_TEMPLATE = ["BOOST_MAGNETIC_AURA_1.png"]
+BOOST_2PIT_LIFTS_TEMPLATE = ["BOOST_2PIT_LIFTS_1.png"]
+
+# -------------------
 # STAGE MAP
 # -------------------
 STAGE_TEMPLATES = {
@@ -176,6 +191,28 @@ def purchase_random_boost():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, PURCHASE_BUTTON[0], PURCHASE_BUTTON[1])
     time.sleep(random.uniform(1, 2))
 
+def purchase_desired_random_boost(desired_template, desired_name):
+    print("🛒 Purchasing Desired Random Boost...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RANDOM_BOOST_ITEM[0], RANDOM_BOOST_ITEM[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MULTI_PURCHASE_BUTTON[0], MULTI_PURCHASE_BUTTON[1])
+    time.sleep(random.uniform(1, 2))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MULTI_BUY_BUTTON[0], MULTI_BUY_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    print(f"🔍 Waiting for desired boost to be detected: {desired_name}...")
+    timeout = 30
+    start_time = time.time()
+    while True:
+        if time.time() - start_time > timeout:
+            print(f"⏰ Timeout: Could not detect desired boost '{desired_name}' within {timeout} seconds.")
+            print("⚠️ Skipping Desired Random Boost. Please verify your in-game boost config is correct.")
+            return
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if detect_templates(screen, desired_template):
+            print(f"✅ Desired Boost detected: {desired_name}!")
+            break
+        time.sleep(0.5)
+
 def using_fast_start():
     print("⚡ Using Fast Start...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, FAST_START_USE_BUTTON[0], FAST_START_USE_BUTTON[1])
@@ -219,14 +256,47 @@ def accept_relic_claim():
 # -------------------
 # BOT OPTIONS
 # -------------------
+BOOST_CHOICES = [
+    ("Double Coins",            BOOST_DOUBLE_COINS_TEMPLATE),
+    ("+15% Score Bonus",        BOOST_15P_SCORE_BONUS_TEMPLATE),
+    ("-15% HP Drain",           BOOST_M15P_HP_DRAIN_TEMPLATE),
+    ("Revive Once with 80 HP",  BOOST_REVIVE_ONCE_WITH_80HP_TEMPLATE),
+    ("70% Crush Chance",        BOOST_70P_CRUSH_CHANCE_TEMPLATE),
+    ("+17% Base Speed",         BOOST_17P_BASE_SPEED_TEMPLATE),
+    ("Gold Coin Magic",         BOOST_GOLD_COIN_MAGIC_TEMPLATE),
+    ("-30% Collision Damage",   BOOST_M30P_COLLISION_DAMAGE_TEMPLATE),
+    ("+20% HP from Potions",    BOOST_20P_HP_FROM_POTIONS_TEMPLATE),
+    ("Magnetic Aura",           BOOST_MAGNETIC_AURA_TEMPLATE),
+    ("2 Pit Lifts",             BOOST_2PIT_LIFTS_TEMPLATE),
+]
+
 def prompt_user_options():
+    desired_boost_template = None
+
     print("\n⚙️ --- Bot Options ---")
     use_fast_start = input("⚡ Use Fast Start (buy + use)? [y/n]: ").strip().lower() == "y"
     use_cookie_relay = input("🍪 Use Cookie Relay (buy + use)? [y/n]: ").strip().lower() == "y"
+    use_desired_random_boost = input("🎲 Use Desired Random Boost (buy + use)? [y/n]: ").strip().lower() == "y"
+    if use_desired_random_boost:
+        print("  Select desired boost (must match the boost option configured in-game):")
+        for i, (name, _) in enumerate(BOOST_CHOICES, 1):
+            print(f"  {i:2}. {name}")
+        while True:
+            choice = input("  Enter number: ").strip()
+            if choice.isdigit() and 1 <= int(choice) <= len(BOOST_CHOICES):
+                desired_boost_template = BOOST_CHOICES[int(choice) - 1][1]
+                desired_boost_name = BOOST_CHOICES[int(choice) - 1][0]
+                print(f"  ✅ Selected: {desired_boost_name}")
+                break
+            print(f"  ⚠️ Please enter a number between 1 and {len(BOOST_CHOICES)}.")
     print("---------------------\n")
+
     return {
         "use_fast_start": use_fast_start,
         "use_cookie_relay": use_cookie_relay,
+        "use_desired_random_boost": use_desired_random_boost,
+        "desired_boost_template": desired_boost_template,
+        "desired_boost_name": desired_boost_name if use_desired_random_boost else None,
     }
 
 # -------------------
@@ -275,6 +345,8 @@ def main():
                         purchase_fast_start()
                     if options["use_cookie_relay"]:
                         purchase_cookie_relay()
+                    if options["use_desired_random_boost"]:
+                        purchase_desired_random_boost(options["desired_boost_template"], options["desired_boost_name"])
                     play_game()
                 elif stage == "GAME_START":
                     print("🏁 Detected Stage: GAME_START")
