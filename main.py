@@ -23,6 +23,7 @@ STAGE_GAME_RELAY_TEMPLATE = ["GAME_RELAY_1.png"]
 STAGE_GAME_COMPLETE_TEMPLATE = ["GAME_COMPLETE_1.png"]
 STAGE_MYSTERY_BOX_TEMPLATE = ["MYSTERY_BOX_1.png"]
 STAGE_CONGRATULATIONS_TEMPLATE = ["CONGRATULATIONS_1.png"]
+STAGE_LEVEL_UP_TEMPLATE = ["LEVEL_UP_1.png"]
 
 # -------------------
 # STAGE MAP
@@ -35,6 +36,7 @@ STAGE_TEMPLATES = {
     "GAME_COMPLETE":  STAGE_GAME_COMPLETE_TEMPLATE,
     "MYSTERY_BOX":    STAGE_MYSTERY_BOX_TEMPLATE,
     "CONGRATULATIONS": STAGE_CONGRATULATIONS_TEMPLATE,
+    "LEVEL_UP":       STAGE_LEVEL_UP_TEMPLATE,
 }
 
 # -------------------
@@ -51,6 +53,7 @@ COOKIE_RELAY_USE_BUTTON = (655, 340)
 COMPLETE_FINISH_BUTTON = (460, 625)
 ACCEPT_MYSTERY_BOX_BUTTON = (650, 645)
 ACCEPT_CONGRATULATIONS_BUTTON = (640, 565)
+ACCEPT_LEVEL_UP_BUTTON = (640, 640)
 
 # -------------------
 # ADB FUNCTIONS
@@ -178,6 +181,11 @@ def accept_congratulations():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_CONGRATULATIONS_BUTTON[0], ACCEPT_CONGRATULATIONS_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
+def accept_level_up():
+    print("⬆️ Accepting Level Up...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_LEVEL_UP_BUTTON[0], ACCEPT_LEVEL_UP_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
 # -------------------
 # BOT OPTIONS
 # -------------------
@@ -201,11 +209,11 @@ def main():
 
     device_connect(DEVICE_IP, DEVICE_PORT)
 
-    options = prompt_user_options()
-
     # * for debugging *
     # device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
     # save_debug_screen(device_screen)
+
+    options = prompt_user_options()
 
     last_stage = None
     is_first_game = True
@@ -262,6 +270,12 @@ def main():
             print("🎉 Detected Stage: CONGRATULATIONS")
             # Add logic for CONGRATULATIONS stage
             accept_congratulations()
+            # Reset last_stage to None to allow re-detection of stages
+            last_stage = None
+        elif stage == "LEVEL_UP":
+            print("⬆️ Detected Stage: LEVEL_UP")
+            # Add logic for LEVEL_UP stage
+            accept_level_up()
             # Reset last_stage to None to allow re-detection of stages
             last_stage = None
 
