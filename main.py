@@ -24,6 +24,8 @@ STAGE_GAME_COMPLETE_TEMPLATE = ["GAME_COMPLETE_1.png"]
 STAGE_MYSTERY_BOX_TEMPLATE = ["MYSTERY_BOX_1.png"]
 STAGE_CONGRATULATIONS_TEMPLATE = ["CONGRATULATIONS_1.png"]
 STAGE_LEVEL_UP_TEMPLATE = ["LEVEL_UP_1.png"]
+STAGE_RELIC_COMPLETE_TEMPLATE = ["RELIC_COMPLETE_1.png"]
+STAGE_RELIC_CLAIM_TEMPLATE = ["RELIC_CLAIM_1.png"]
 
 # -------------------
 # STAGE MAP
@@ -37,6 +39,8 @@ STAGE_TEMPLATES = {
     "MYSTERY_BOX":    STAGE_MYSTERY_BOX_TEMPLATE,
     "CONGRATULATIONS": STAGE_CONGRATULATIONS_TEMPLATE,
     "LEVEL_UP":       STAGE_LEVEL_UP_TEMPLATE,
+    "RELIC_COMPLETE": STAGE_RELIC_COMPLETE_TEMPLATE,
+    "RELIC_CLAIM":    STAGE_RELIC_CLAIM_TEMPLATE,
 }
 
 # -------------------
@@ -48,12 +52,16 @@ FAST_START_ITEM = (235, 600)
 COOKIE_RELAY_ITEM = (385, 600)
 RANDOM_BOOST_ITEM = (535, 600)
 PURCHASE_BUTTON = (925, 295)
+MULTI_PURCHASE_BUTTON = (1100, 195)
+MULTI_BUY_BUTTON = (640, 587)
 FAST_START_USE_BUTTON = (655, 340)
 COOKIE_RELAY_USE_BUTTON = (655, 340)
 COMPLETE_FINISH_BUTTON = (460, 625)
 ACCEPT_MYSTERY_BOX_BUTTON = (650, 645)
 ACCEPT_CONGRATULATIONS_BUTTON = (640, 565)
 ACCEPT_LEVEL_UP_BUTTON = (640, 640)
+RELIC_COMPLETE_BUTTON = (530, 110)
+RELIC_CLAIM_BUTTON = (640, 580)
 
 # -------------------
 # ADB FUNCTIONS
@@ -112,6 +120,18 @@ def save_debug_screen(screen):
 # -------------------
 # BOT LOGIC
 # -------------------
+def detect_templates(screen, template_files):
+    for filename in template_files:
+        template_path = os.path.join(TEMPLATE_DIR, filename)
+        template = cv2.imread(template_path, cv2.IMREAD_COLOR)
+        if template is None:
+            continue
+        result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, _ = cv2.minMaxLoc(result)
+        if max_val >= MATCH_THRESHOLD:
+            return True
+    return False
+
 def detect_stage(screen):
     for stage_name, template_files in STAGE_TEMPLATES.items():
         for filename in template_files:
@@ -186,6 +206,16 @@ def accept_level_up():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_LEVEL_UP_BUTTON[0], ACCEPT_LEVEL_UP_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
+def open_relic_complete():
+    print("🏺 Opening Relic Complete...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_COMPLETE_BUTTON[0], RELIC_COMPLETE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+def accept_relic_claim():
+    print("🏺 Accepting Relic Claim...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLAIM_BUTTON[0], RELIC_CLAIM_BUTTON[1])
+    time.sleep(random.uniform(3, 5))
+
 # -------------------
 # BOT OPTIONS
 # -------------------
@@ -203,83 +233,94 @@ def prompt_user_options():
 # MAIN LOOP
 # -------------------
 def main():
-    print("🚀 CookieRun Classic Bot Started")
-    print("⚠️ Screen must be 1280x720 resolution for the bot to work properly.")
-    print(f"📱 Connecting to device at {DEVICE_IP}:{DEVICE_PORT}...")
+    try:
+        print("🚀 CookieRun Classic Bot Started")
+        print("⚠️ Screen must be 1280x720 resolution for the bot to work properly.")
+        print(f"📱 Connecting to device at {DEVICE_IP}:{DEVICE_PORT}...")
 
-    device_connect(DEVICE_IP, DEVICE_PORT)
+        device_connect(DEVICE_IP, DEVICE_PORT)
 
-    # * for debugging *
-    # device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-    # save_debug_screen(device_screen)
+        # * for debugging *
+        # device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        # save_debug_screen(device_screen)
 
-    options = prompt_user_options()
+        options = prompt_user_options()
 
-    last_stage = None
-    is_first_game = True
+        last_stage = None
+        is_first_game = True
 
-    while True:
-        device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-        stage = detect_stage(device_screen)
+        while True:
+                device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+                stage = detect_stage(device_screen)
 
-        if stage == last_stage:
-            time.sleep(0.5)
-            continue
+                if stage == last_stage:
+                    time.sleep(0.5)
+                    continue
 
-        last_stage = stage
+                last_stage = stage
 
-        if stage == "MAINMENU":
-            print("🎮 Detected Stage: MAINMENU")
-            # Add logic for MAINMENU stage
-            if not is_first_game:
-                delay = random.uniform(30, 60)
-                print(f"⏳ Waiting for {delay:.2f} seconds before starting the next game...")
-                time.sleep(delay)
-            is_first_game = False
-            start_game()
-        elif stage == "PURCHASE_ITEM":
-            print("🛒 Detected Stage: PURCHASE_ITEM")
-            # Add logic for PURCHASE_ITEM stage
-            if options["use_fast_start"]:
-                purchase_fast_start()
-            if options["use_cookie_relay"]:
-                purchase_cookie_relay()
-            play_game()
-        elif stage == "GAME_START":
-            print("🏁 Detected Stage: GAME_START")
-            # Add logic for GAME_START stage
-            if options["use_fast_start"]:
-                using_fast_start()
-        elif stage == "GAME_RELAY":
-            print("🔄 Detected Stage: GAME_RELAY")
-            # Add logic for GAME_RELAY stage
-            if options["use_cookie_relay"]:
-                using_cookie_relay()
-        elif stage == "GAME_COMPLETE":
-            print("✅ Detected Stage: GAME_COMPLETE")
-            # Add logic for GAME_COMPLETE stage
-            complete_finish()
-        elif stage == "MYSTERY_BOX":
-            print("🎁 Detected Stage: MYSTERY_BOX")
-            # Add logic for MYSTERY_BOX stage
-            accept_mystery_box()
-            # Reset last_stage to None to allow re-detection of stages
-            time.sleep(3)
-            last_stage = None
-        elif stage == "CONGRATULATIONS":
-            print("🎉 Detected Stage: CONGRATULATIONS")
-            # Add logic for CONGRATULATIONS stage
-            accept_congratulations()
-            # Reset last_stage to None to allow re-detection of stages
-            last_stage = None
-        elif stage == "LEVEL_UP":
-            print("⬆️ Detected Stage: LEVEL_UP")
-            # Add logic for LEVEL_UP stage
-            accept_level_up()
-            # Reset last_stage to None to allow re-detection of stages
-            last_stage = None
+                if stage == "MAINMENU":
+                    print("🎮 Detected Stage: MAINMENU")
+                    # Add logic for MAINMENU stage
+                    if not is_first_game:
+                        delay = random.uniform(30, 60)
+                        print(f"⏳ Waiting for {delay:.2f} seconds before starting the next game...")
+                        time.sleep(delay)
+                    is_first_game = False
+                    start_game()
+                elif stage == "PURCHASE_ITEM":
+                    print("🛒 Detected Stage: PURCHASE_ITEM")
+                    # Add logic for PURCHASE_ITEM stage
+                    if options["use_fast_start"]:
+                        purchase_fast_start()
+                    if options["use_cookie_relay"]:
+                        purchase_cookie_relay()
+                    play_game()
+                elif stage == "GAME_START":
+                    print("🏁 Detected Stage: GAME_START")
+                    # Add logic for GAME_START stage
+                    if options["use_fast_start"]:
+                        using_fast_start()
+                elif stage == "GAME_RELAY":
+                    print("🔄 Detected Stage: GAME_RELAY")
+                    # Add logic for GAME_RELAY stage
+                    if options["use_cookie_relay"]:
+                        using_cookie_relay()
+                elif stage == "GAME_COMPLETE":
+                    print("✅ Detected Stage: GAME_COMPLETE")
+                    # Add logic for GAME_COMPLETE stage
+                    complete_finish()
+                elif stage == "MYSTERY_BOX":
+                    print("🎁 Detected Stage: MYSTERY_BOX")
+                    # Add logic for MYSTERY_BOX stage
+                    accept_mystery_box()
+                    # Reset last_stage to None to allow re-detection of stages
+                    time.sleep(3)
+                    last_stage = None
+                elif stage == "CONGRATULATIONS":
+                    print("🎉 Detected Stage: CONGRATULATIONS")
+                    # Add logic for CONGRATULATIONS stage
+                    accept_congratulations()
+                    # Reset last_stage to None to allow re-detection of stages
+                    last_stage = None
+                elif stage == "LEVEL_UP":
+                    print("⬆️ Detected Stage: LEVEL_UP")
+                    # Add logic for LEVEL_UP stage
+                    accept_level_up()
+                elif stage == "RELIC_COMPLETE":
+                    print("🏺 Detected Stage: RELIC_COMPLETE")
+                    # Add logic for RELIC_COMPLETE stage
+                    open_relic_complete()
+                elif stage == "RELIC_CLAIM":
+                    print("🏺 Detected Stage: RELIC_CLAIM")
+                    # Add logic for RELIC_CLAIM stage
+                    accept_relic_claim()
 
-        time.sleep(0.5)
+                time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("\n\n🛑 Bot stopped by user.")
+    except Exception as e:
+        print(f"❌ An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

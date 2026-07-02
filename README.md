@@ -51,6 +51,8 @@ pip install -r requirements.txt
    - `MYSTERY_BOX_1.png`
    - `CONGRATULATIONS_1.png`
    - `LEVEL_UP_1.png`
+   - `RELIC_COMPLETE_1.png`
+   - `RELIC_CLAIM_1.png`
 
 ## Usage
 
