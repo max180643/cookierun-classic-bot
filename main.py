@@ -22,10 +22,13 @@ STAGE_GAME_START_TEMPLATE = ["GAME_START_1.png"]
 STAGE_GAME_RELAY_TEMPLATE = ["GAME_RELAY_1.png"]
 STAGE_GAME_COMPLETE_TEMPLATE = ["GAME_COMPLETE_1.png"]
 STAGE_MYSTERY_BOX_TEMPLATE = ["MYSTERY_BOX_1.png"]
-STAGE_CONGRATULATIONS_TEMPLATE = ["CONGRATULATIONS_1.png"]
+STAGE_CONGRATULATIONS_TEMPLATE = ["CONGRATULATIONS_1.png", "CONGRATULATIONS_2.png"]
 STAGE_LEVEL_UP_TEMPLATE = ["LEVEL_UP_1.png"]
 STAGE_RELIC_COMPLETE_TEMPLATE = ["RELIC_COMPLETE_1.png"]
 STAGE_RELIC_CLAIM_TEMPLATE = ["RELIC_CLAIM_1.png"]
+STAGE_DAILY_CHECKIN_TEMPLATE = ["DAILY_CHECKIN_1.png"]
+STAGE_DAILY_TREASURE_TEMPLATE = ["DAILY_TREASURE_1.png"]
+STAGE_ENTER_LEAGUE_TEMPLATE = ["ENTER_LEAGUE_1.png"]
 
 # -------------------
 # BOOST TEMPLATES
@@ -47,6 +50,8 @@ BOOST_2PIT_LIFTS_TEMPLATE = ["BOOST_2PIT_LIFTS_1.png"]
 # -------------------
 STAGE_TEMPLATES = {
     # higher priority stages first
+    "DAILY_CHECKIN":   STAGE_DAILY_CHECKIN_TEMPLATE,
+    "DAILY_TREASURE":  STAGE_DAILY_TREASURE_TEMPLATE,
     "LEVEL_UP":        STAGE_LEVEL_UP_TEMPLATE,
     "CONGRATULATIONS": STAGE_CONGRATULATIONS_TEMPLATE,
     "RELIC_COMPLETE":  STAGE_RELIC_COMPLETE_TEMPLATE,
@@ -57,6 +62,7 @@ STAGE_TEMPLATES = {
     "GAME_RELAY":      STAGE_GAME_RELAY_TEMPLATE,
     "GAME_COMPLETE":   STAGE_GAME_COMPLETE_TEMPLATE,
     "MYSTERY_BOX":     STAGE_MYSTERY_BOX_TEMPLATE,
+    "ENTER_LEAGUE":    STAGE_ENTER_LEAGUE_TEMPLATE,
 }
 
 # -------------------
@@ -76,8 +82,12 @@ COMPLETE_FINISH_BUTTON = (460, 625)
 ACCEPT_MYSTERY_BOX_BUTTON = (650, 645)
 ACCEPT_CONGRATULATIONS_BUTTON = (640, 565)
 ACCEPT_LEVEL_UP_BUTTON = (640, 640)
+ACCEPT_DAILY_CHECKIN_BUTTON = (640, 660)
+ACCEPT_DAILY_TREASURE_BUTTON = (650, 570)
+ACCEPT_ENTER_LEAGUE_BUTTON = (640, 460)
 RELIC_COMPLETE_BUTTON = (530, 110)
 RELIC_CLAIM_BUTTON = (640, 580)
+RELIC_CLOSE_BUTTON = (1076, 154)
 
 # -------------------
 # ADB FUNCTIONS
@@ -244,6 +254,21 @@ def accept_level_up():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_LEVEL_UP_BUTTON[0], ACCEPT_LEVEL_UP_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
+def accept_daily_checkin():
+    print("📅 Accepting Daily Check-in...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_CHECKIN_BUTTON[0], ACCEPT_DAILY_CHECKIN_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+def accept_daily_treasure():
+    print("💎 Accepting Daily Treasure...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_TREASURE_BUTTON[0], ACCEPT_DAILY_TREASURE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+def accept_enter_league():
+    print("🏆 Accepting Enter League...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_ENTER_LEAGUE_BUTTON[0], ACCEPT_ENTER_LEAGUE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
 def open_relic_complete():
     print("🏺 Opening Relic Complete...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_COMPLETE_BUTTON[0], RELIC_COMPLETE_BUTTON[1])
@@ -252,6 +277,8 @@ def open_relic_complete():
 def accept_relic_claim():
     print("🏺 Accepting Relic Claim...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLAIM_BUTTON[0], RELIC_CLAIM_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLOSE_BUTTON[0], RELIC_CLOSE_BUTTON[1])
     time.sleep(random.uniform(10, 15))
 
 # -------------------
@@ -380,6 +407,18 @@ def main():
                     print("⬆️ Detected Stage: LEVEL_UP")
                     # Add logic for LEVEL_UP stage
                     accept_level_up()
+                elif stage == "DAILY_CHECKIN":
+                    print("📅 Detected Stage: DAILY_CHECKIN")
+                    # Add logic for DAILY_CHECKIN stage
+                    accept_daily_checkin()
+                elif stage == "DAILY_TREASURE":
+                    print("💎 Detected Stage: DAILY_TREASURE")
+                    # Add logic for DAILY_TREASURE stage
+                    accept_daily_treasure()
+                elif stage == "ENTER_LEAGUE":
+                    print("🏆 Detected Stage: ENTER_LEAGUE")
+                    # Add logic for ENTER_LEAGUE stage
+                    accept_enter_league()
                 elif stage == "RELIC_COMPLETE":
                     print("🏺 Detected Stage: RELIC_COMPLETE")
                     # Add logic for RELIC_COMPLETE stage
