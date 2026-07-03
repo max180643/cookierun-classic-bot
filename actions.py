@@ -26,8 +26,12 @@ from config import (
     RELIC_COMPLETE_BUTTON,
     START_BUTTON,
 )
-from detection import detect_templates
-
+from detection import detect_templates, detect_anti_bot_odd_cards
+from config import (
+    ANTI_BOT_CARD_POS_1, ANTI_BOT_CARD_POS_2, ANTI_BOT_CARD_POS_3,
+    ANTI_BOT_CARD_POS_4, ANTI_BOT_CARD_POS_5, ANTI_BOT_CARD_POS_6,
+    ANTI_BOT_CARD_WIDTH, ANTI_BOT_CARD_HEIGHT,
+)
 
 def start_game():
     print("🏁 Starting the game...")
@@ -156,3 +160,28 @@ def accept_relic_claim():
     time.sleep(random.uniform(0.8, 1.4))
     safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLOSE_BUTTON[0], RELIC_CLOSE_BUTTON[1])
     time.sleep(random.uniform(10, 15))
+
+
+def handle_anti_bot(screen):
+    print("🤖 Solving Anti-Bot captcha...")
+    card_coords = [
+        ANTI_BOT_CARD_POS_1, ANTI_BOT_CARD_POS_2, ANTI_BOT_CARD_POS_3,
+        ANTI_BOT_CARD_POS_4, ANTI_BOT_CARD_POS_5, ANTI_BOT_CARD_POS_6,
+    ]
+
+    odd_indices = detect_anti_bot_odd_cards(screen)
+    card_nums = [i + 1 for i in odd_indices]
+    print(f"🃏 Found odd cards: Card {card_nums[0]} and Card {card_nums[1]}")
+
+    for idx in odd_indices:
+        cx, cy = card_coords[idx]
+        # random tap position inside the card, with a small margin
+        margin = 20
+        tx = random.randint(cx + margin, cx + ANTI_BOT_CARD_WIDTH - margin)
+        ty = random.randint(cy + margin, cy + ANTI_BOT_CARD_HEIGHT - margin)
+        print(f"  👆 Tapping Card {idx + 1} at ({tx}, {ty})")
+        safe_device_tap(DEVICE_IP, DEVICE_PORT, tx, ty)
+        time.sleep(random.uniform(10, 15))
+
+    print("✅ Anti-Bot captcha solved!")
+    time.sleep(random.uniform(0.8, 1.4))

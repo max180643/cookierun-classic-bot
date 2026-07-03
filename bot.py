@@ -11,6 +11,7 @@ from actions import (
     accept_mystery_box,
     accept_relic_claim,
     complete_finish,
+    handle_anti_bot,
     open_relic_complete,
     play_game,
     purchase_cookie_relay,
@@ -170,6 +171,10 @@ def main():
             elif stage == "RELIC_CLAIM":
                 print("🏺 Detected Stage: RELIC_CLAIM")
                 accept_relic_claim()
+            elif stage == "ANTI_BOT":
+                print("⚠️ Detected Stage: ANTI_BOT")
+                handle_anti_bot(device_screen)
+                last_stage = None
 
             time.sleep(0.5)
     except KeyboardInterrupt:
