@@ -1,0 +1,158 @@
+import random
+import time
+
+from adb import safe_device_tap
+from config import (
+    ACCEPT_CONGRATULATIONS_BUTTON,
+    ACCEPT_DAILY_CHECKIN_BUTTON,
+    ACCEPT_DAILY_TREASURE_BUTTON,
+    ACCEPT_ENTER_LEAGUE_BUTTON,
+    ACCEPT_LEVEL_UP_BUTTON,
+    ACCEPT_MYSTERY_BOX_BUTTON,
+    COMPLETE_FINISH_BUTTON,
+    COOKIE_RELAY_ITEM,
+    COOKIE_RELAY_USE_BUTTON,
+    DEVICE_IP,
+    DEVICE_PORT,
+    FAST_START_ITEM,
+    FAST_START_USE_BUTTON,
+    MULTI_BUY_BUTTON,
+    MULTI_PURCHASE_BUTTON,
+    PLAY_BUTTON,
+    PURCHASE_BUTTON,
+    RANDOM_BOOST_ITEM,
+    RELIC_CLAIM_BUTTON,
+    RELIC_CLOSE_BUTTON,
+    RELIC_COMPLETE_BUTTON,
+    START_BUTTON,
+)
+from detection import detect_templates
+
+
+def start_game():
+    print("🏁 Starting the game...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, START_BUTTON[0], START_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def play_game():
+    print("🎮 Playing the game...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, PLAY_BUTTON[0], PLAY_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def purchase_fast_start():
+    print("🛒 Purchasing Fast Start...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, FAST_START_ITEM[0], FAST_START_ITEM[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, PURCHASE_BUTTON[0], PURCHASE_BUTTON[1])
+    time.sleep(random.uniform(1, 2))
+
+
+def purchase_cookie_relay():
+    print("🛒 Purchasing Cookie Relay...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, COOKIE_RELAY_ITEM[0], COOKIE_RELAY_ITEM[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, PURCHASE_BUTTON[0], PURCHASE_BUTTON[1])
+    time.sleep(random.uniform(1, 2))
+
+
+def purchase_random_boost():
+    print("🛒 Purchasing Random Boost...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RANDOM_BOOST_ITEM[0], RANDOM_BOOST_ITEM[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, PURCHASE_BUTTON[0], PURCHASE_BUTTON[1])
+    time.sleep(random.uniform(1, 2))
+
+
+def purchase_desired_random_boost(desired_template, desired_name):
+    from adb import device_capture_screen
+
+    print("🛒 Purchasing Desired Random Boost...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RANDOM_BOOST_ITEM[0], RANDOM_BOOST_ITEM[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MULTI_PURCHASE_BUTTON[0], MULTI_PURCHASE_BUTTON[1])
+    time.sleep(random.uniform(1, 2))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MULTI_BUY_BUTTON[0], MULTI_BUY_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    print(f"🔍 Waiting for desired boost to be detected: {desired_name}...")
+    timeout = 30
+    start_time = time.time()
+    while True:
+        if time.time() - start_time > timeout:
+            print(f"⏰ Timeout: Could not detect desired boost '{desired_name}' within {timeout} seconds.")
+            print("⚠️ Skipping Desired Random Boost. Please verify your in-game boost config is correct.")
+            return
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if detect_templates(screen, desired_template):
+            print(f"✅ Desired Boost detected: {desired_name}!")
+            break
+        time.sleep(0.5)
+
+
+def using_fast_start():
+    print("⚡ Using Fast Start...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, FAST_START_USE_BUTTON[0], FAST_START_USE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def using_cookie_relay():
+    print("🍪 Using Cookie Relay...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, COOKIE_RELAY_USE_BUTTON[0], COOKIE_RELAY_USE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def complete_finish():
+    print("🏆 Completing the game...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, COMPLETE_FINISH_BUTTON[0], COMPLETE_FINISH_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_mystery_box():
+    print("🎁 Accepting Mystery Box...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_MYSTERY_BOX_BUTTON[0], ACCEPT_MYSTERY_BOX_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_congratulations():
+    print("🎉 Accepting Congratulations...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_CONGRATULATIONS_BUTTON[0], ACCEPT_CONGRATULATIONS_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_level_up():
+    print("⬆️ Accepting Level Up...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_LEVEL_UP_BUTTON[0], ACCEPT_LEVEL_UP_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_daily_checkin():
+    print("📅 Accepting Daily Check-in...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_CHECKIN_BUTTON[0], ACCEPT_DAILY_CHECKIN_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_daily_treasure():
+    print("💎 Accepting Daily Treasure...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_TREASURE_BUTTON[0], ACCEPT_DAILY_TREASURE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_enter_league():
+    print("🏆 Accepting Enter League...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_ENTER_LEAGUE_BUTTON[0], ACCEPT_ENTER_LEAGUE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def open_relic_complete():
+    print("🏺 Opening Relic Complete...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_COMPLETE_BUTTON[0], RELIC_COMPLETE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_relic_claim():
+    print("🏺 Accepting Relic Claim...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLAIM_BUTTON[0], RELIC_CLAIM_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, RELIC_CLOSE_BUTTON[0], RELIC_CLOSE_BUTTON[1])
+    time.sleep(random.uniform(10, 15))
