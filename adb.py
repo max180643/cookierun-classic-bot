@@ -1,5 +1,6 @@
 import random
 import subprocess
+import time
 
 import cv2
 import numpy as np
@@ -41,6 +42,22 @@ def safe_device_tap(ip: str, port: int, x: int, y: int):
     jitter_y = y + random.randint(-15, 15)
     subprocess.run(
         ["adb", "-s", f"{ip}:{port}", "shell", "input", "tap", str(jitter_x), str(jitter_y)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+
+def device_reset_app(ip: str, port: int, package: str = "com.devsisters.crg"):
+    subprocess.run(
+        ["adb", "-s", f"{ip}:{port}", "shell", "cmd", "activity", "force-stop", package],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    time.sleep(3)
+    subprocess.run(
+        ["adb", "-s", f"{ip}:{port}", "shell", "monkey", "-p", package, "1"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True

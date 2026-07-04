@@ -1,7 +1,7 @@
 import random
 import time
 
-from adb import device_capture_screen, device_connect
+from adb import device_capture_screen, device_connect, device_reset_app
 from actions import (
     accept_congratulations,
     accept_daily_checkin,
@@ -35,6 +35,7 @@ from config import (
     BOOST_REVIVE_ONCE_WITH_80HP_TEMPLATE,
     DEVICE_IP,
     DEVICE_PORT,
+    SESSION_RESET_INTERVAL,
 )
 from detection import detect_stage
 
@@ -105,6 +106,8 @@ def main():
 
         last_stage = None
         is_first_game = True
+        session_start_time = time.time()
+        session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
@@ -118,6 +121,16 @@ def main():
 
             if stage == "MAINMENU":
                 print("🎮 Detected Stage: MAINMENU")
+                elapsed = time.time() - session_start_time
+                if elapsed >= session_reset_interval:
+                    print(f"🔄 Session reset triggered after {elapsed / 3600:.2f}h — restarting app...")
+                    device_reset_app(DEVICE_IP, DEVICE_PORT)
+                    time.sleep(30)
+                    session_start_time = time.time()
+                    session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    last_stage = None
+                    is_first_game = True
+                    continue
                 if not is_first_game:
                     delay = random.uniform(30, 60)
                     print(f"⏳ Waiting for {delay:.2f} seconds before starting the next game...")
