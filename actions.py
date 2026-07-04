@@ -25,6 +25,7 @@ from config import (
     RELIC_CLOSE_BUTTON,
     RELIC_COMPLETE_BUTTON,
     START_BUTTON,
+    CONNECTION_LOST_RELOAD_BUTTON,
 )
 from detection import detect_templates, detect_anti_bot_odd_cards
 from config import (
@@ -184,4 +185,10 @@ def handle_anti_bot(screen):
         time.sleep(random.uniform(10, 15))
 
     print("✅ Anti-Bot captcha solved!")
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def handle_connection_lost():
+    print("🔌 Handling Connection Lost...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, CONNECTION_LOST_RELOAD_BUTTON[0], CONNECTION_LOST_RELOAD_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))

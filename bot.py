@@ -12,6 +12,7 @@ from actions import (
     accept_relic_claim,
     complete_finish,
     handle_anti_bot,
+    handle_connection_lost,
     open_relic_complete,
     play_game,
     purchase_cookie_relay,
@@ -187,6 +188,10 @@ def main():
             elif stage == "ANTI_BOT":
                 print("⚠️ Detected Stage: ANTI_BOT")
                 handle_anti_bot(device_screen)
+                last_stage = None
+            elif stage == "CONNECTION_LOST":
+                print("🔌 Detected Stage: CONNECTION_LOST")
+                handle_connection_lost()
                 last_stage = None
 
             time.sleep(0.5)
