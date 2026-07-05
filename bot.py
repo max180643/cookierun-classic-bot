@@ -40,7 +40,7 @@ from config import (
     DEVICE_PORT,
     SESSION_RESET_INTERVAL,
 )
-from detection import detect_stage
+from detection import detect_stage, load_templates
 
 # -------------------
 # BOT OPTIONS
@@ -100,6 +100,7 @@ def main():
         print(f"📱 Connecting to device at {DEVICE_IP}:{DEVICE_PORT}...")
 
         device_connect(DEVICE_IP, DEVICE_PORT)
+        load_templates()
 
         # * for debugging *
         # device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)

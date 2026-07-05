@@ -19,6 +19,24 @@ from config import (
 )
 
 
+_template_cache: dict = {}
+
+
+def _get_template(filename):
+    """Return cached template image, loading from disk on first access."""
+    if filename not in _template_cache:
+        path = os.path.join(TEMPLATE_DIR, filename)
+        _template_cache[filename] = _normalize(cv2.imread(path, cv2.IMREAD_UNCHANGED))
+    return _template_cache[filename]
+
+
+def load_templates():
+    """Pre-warm the template cache with all stage templates at startup."""
+    for template_files in STAGE_TEMPLATES.values():
+        for filename in template_files:
+            _get_template(filename)
+
+
 def _normalize(img):
     """Ensure image is BGR uint8 (3-channel). Returns None if conversion fails."""
     if img is None:
@@ -39,8 +57,7 @@ def detect_templates(screen, template_files):
     if screen is None:
         return False
     for filename in template_files:
-        template_path = os.path.join(TEMPLATE_DIR, filename)
-        template = _normalize(cv2.imread(template_path, cv2.IMREAD_UNCHANGED))
+        template = _get_template(filename)
         if template is None:
             continue
         result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
@@ -56,8 +73,7 @@ def detect_stage(screen):
         return None
     for stage_name, template_files in STAGE_TEMPLATES.items():
         for filename in template_files:
-            template_path = os.path.join(TEMPLATE_DIR, filename)
-            template = _normalize(cv2.imread(template_path, cv2.IMREAD_UNCHANGED))
+            template = _get_template(filename)
             if template is None:
                 continue
             result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
