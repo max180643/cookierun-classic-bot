@@ -98,13 +98,13 @@ def purchase_desired_random_boost(desired_template, desired_name):
 def using_fast_start():
     print("⚡ Using Fast Start...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, FAST_START_USE_BUTTON[0], FAST_START_USE_BUTTON[1])
-    time.sleep(random.uniform(0.8, 1.4))
+    time.sleep(random.uniform(0.8, 1.2))
 
 
 def using_cookie_relay():
     print("🍪 Using Cookie Relay...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, COOKIE_RELAY_USE_BUTTON[0], COOKIE_RELAY_USE_BUTTON[1])
-    time.sleep(random.uniform(0.8, 1.4))
+    time.sleep(random.uniform(0.8, 1.2))
 
 
 def complete_finish():

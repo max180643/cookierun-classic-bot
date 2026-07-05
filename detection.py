@@ -19,10 +19,28 @@ from config import (
 )
 
 
+def _normalize(img):
+    """Ensure image is BGR uint8 (3-channel). Returns None if conversion fails."""
+    if img is None:
+        return None
+    if img.dtype != np.uint8:
+        return None
+    if img.ndim == 2:
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    if img.ndim == 3 and img.shape[2] == 4:
+        return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+    if img.ndim == 3 and img.shape[2] == 3:
+        return img
+    return None
+
+
 def detect_templates(screen, template_files):
+    screen = _normalize(screen)
+    if screen is None:
+        return False
     for filename in template_files:
         template_path = os.path.join(TEMPLATE_DIR, filename)
-        template = cv2.imread(template_path, cv2.IMREAD_COLOR)
+        template = _normalize(cv2.imread(template_path, cv2.IMREAD_UNCHANGED))
         if template is None:
             continue
         result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
@@ -33,10 +51,13 @@ def detect_templates(screen, template_files):
 
 
 def detect_stage(screen):
+    screen = _normalize(screen)
+    if screen is None:
+        return None
     for stage_name, template_files in STAGE_TEMPLATES.items():
         for filename in template_files:
             template_path = os.path.join(TEMPLATE_DIR, filename)
-            template = cv2.imread(template_path, cv2.IMREAD_COLOR)
+            template = _normalize(cv2.imread(template_path, cv2.IMREAD_UNCHANGED))
             if template is None:
                 continue
             result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
@@ -68,9 +89,10 @@ def detect_anti_bot_odd_cards(screen):
     ]
 
     # Crop card regions as grayscale for structural comparison
+    screen_bgr = _normalize(screen)
     crops = []
     for cx, cy in card_coords:
-        crop = screen[cy:cy + ANTI_BOT_CARD_HEIGHT, cx:cx + ANTI_BOT_CARD_WIDTH]
+        crop = screen_bgr[cy:cy + ANTI_BOT_CARD_HEIGHT, cx:cx + ANTI_BOT_CARD_WIDTH]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         crops.append(gray)
 
