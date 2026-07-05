@@ -191,4 +191,4 @@ def handle_anti_bot(screen):
 def handle_connection_lost():
     print("🔌 Handling Connection Lost...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, CONNECTION_LOST_RELOAD_BUTTON[0], CONNECTION_LOST_RELOAD_BUTTON[1])
-    time.sleep(random.uniform(0.8, 1.4))
+    time.sleep(random.uniform(10, 15))
