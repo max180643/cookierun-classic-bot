@@ -7,6 +7,7 @@ from actions import (
     accept_daily_checkin,
     accept_daily_treasure,
     accept_enter_league,
+    accept_league_results,
     accept_level_up,
     accept_mystery_box,
     accept_relic_claim,
@@ -179,6 +180,9 @@ def main():
             elif stage == "ENTER_LEAGUE":
                 print("🏆 Detected Stage: ENTER_LEAGUE")
                 accept_enter_league()
+            elif stage == "LEAGUE_RESULTS":
+                print("🏆 Detected Stage: LEAGUE_RESULTS")
+                accept_league_results()
             elif stage == "RELIC_COMPLETE":
                 print("🏺 Detected Stage: RELIC_COMPLETE")
                 open_relic_complete()

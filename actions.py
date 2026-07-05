@@ -7,6 +7,7 @@ from config import (
     ACCEPT_DAILY_CHECKIN_BUTTON,
     ACCEPT_DAILY_TREASURE_BUTTON,
     ACCEPT_ENTER_LEAGUE_BUTTON,
+    ACCEPT_LEAGUE_RESULTS_BUTTON,
     ACCEPT_LEVEL_UP_BUTTON,
     ACCEPT_MYSTERY_BOX_BUTTON,
     COMPLETE_FINISH_BUTTON,
@@ -146,6 +147,12 @@ def accept_daily_treasure():
 def accept_enter_league():
     print("🏆 Accepting Enter League...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_ENTER_LEAGUE_BUTTON[0], ACCEPT_ENTER_LEAGUE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_league_results():
+    print("🏆 Accepting League Results...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_LEAGUE_RESULTS_BUTTON[0], ACCEPT_LEAGUE_RESULTS_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
 
