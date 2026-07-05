@@ -10,6 +10,7 @@ from actions import (
     accept_league_results,
     accept_level_up,
     accept_mystery_box,
+    accept_previous_rank_results,
     accept_relic_claim,
     complete_finish,
     handle_anti_bot,
@@ -183,6 +184,9 @@ def main():
             elif stage == "LEAGUE_RESULTS":
                 print("🏆 Detected Stage: LEAGUE_RESULTS")
                 accept_league_results()
+            elif stage == "PREVIOUS_RANK_RESULTS":
+                print("🏆 Detected Stage: PREVIOUS_RANK_RESULTS")
+                accept_previous_rank_results()
             elif stage == "RELIC_COMPLETE":
                 print("🏺 Detected Stage: RELIC_COMPLETE")
                 open_relic_complete()
