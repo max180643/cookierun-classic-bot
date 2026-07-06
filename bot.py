@@ -206,6 +206,6 @@ def main():
 
             time.sleep(0.25)
     except KeyboardInterrupt:
-        print("\n\n🛑 Bot stopped by user.")
+        print("🛑 Bot stopped by user.")
     except Exception as e:
         print(f"❌ An error occurred: {e}")
