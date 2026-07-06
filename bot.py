@@ -118,7 +118,7 @@ def main():
             stage = detect_stage(device_screen)
 
             if stage == last_stage:
-                time.sleep(0.5)
+                time.sleep(0.1)
                 continue
 
             last_stage = stage
@@ -150,6 +150,7 @@ def main():
                 if options["use_desired_random_boost"]:
                     purchase_desired_random_boost(options["desired_boost_template"], options["desired_boost_name"])
                 play_game()
+                last_stage = None
             elif stage == "GAME_START":
                 print("🏁 Detected Stage: GAME_START")
                 if options["use_fast_start"]:
@@ -203,7 +204,7 @@ def main():
                 handle_connection_lost()
                 last_stage = None
 
-            time.sleep(0.5)
+            time.sleep(0.25)
     except KeyboardInterrupt:
         print("\n\n🛑 Bot stopped by user.")
     except Exception as e:
