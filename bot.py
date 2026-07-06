@@ -63,7 +63,7 @@ BOOST_CHOICES = [
 def prompt_user_options():
     desired_boost_template = None
 
-    print("\n⚙️ --- Bot Options ---")
+    print("⚙️ --- Bot Options ---")
     use_fast_start = input("⚡ Use Fast Start (buy + use)? [y/n]: ").strip().lower() == "y"
     use_cookie_relay = input("🍪 Use Cookie Relay (buy + use)? [y/n]: ").strip().lower() == "y"
     use_desired_random_boost = input("🎲 Use Desired Random Boost (buy + use)? [y/n]: ").strip().lower() == "y"
@@ -79,7 +79,7 @@ def prompt_user_options():
                 print(f"  ✅ Selected: {desired_boost_name}")
                 break
             print(f"  ⚠️ Please enter a number between 1 and {len(BOOST_CHOICES)}.")
-    print("---------------------\n")
+    print("---------------------")
 
     return {
         "use_fast_start": use_fast_start,
