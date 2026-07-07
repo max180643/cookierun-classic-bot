@@ -13,6 +13,7 @@ from config import (
     ANTI_BOT_CARD_POS_4,
     ANTI_BOT_CARD_POS_5,
     ANTI_BOT_CARD_POS_6,
+    BOOST_TEMPLATES,
     MATCH_THRESHOLD,
     STAGE_TEMPLATES,
     TEMPLATE_DIR,
@@ -20,6 +21,7 @@ from config import (
 
 
 _template_cache: dict = {}
+_template_gray_cache: dict = {}
 
 
 def _get_template(filename):
@@ -30,11 +32,22 @@ def _get_template(filename):
     return _template_cache[filename]
 
 
+def _get_template_gray(filename):
+    """Return cached grayscale template image, loading from disk on first access."""
+    if filename not in _template_gray_cache:
+        template = _get_template(filename)
+        _template_gray_cache[filename] = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY) if template is not None else None
+    return _template_gray_cache[filename]
+
+
 def load_templates():
-    """Pre-warm the template cache with all stage templates at startup."""
+    """Pre-warm the template cache with all stage and boost templates at startup."""
     for template_files in STAGE_TEMPLATES.values():
         for filename in template_files:
-            _get_template(filename)
+            _get_template_gray(filename)
+    for template_files in BOOST_TEMPLATES:
+        for filename in template_files:
+            _get_template_gray(filename)
 
 
 def _normalize(img):
@@ -52,31 +65,43 @@ def _normalize(img):
     return None
 
 
+def _normalize_gray(img):
+    normalized = _normalize(img)
+    if normalized is None:
+        return None
+    return cv2.cvtColor(normalized, cv2.COLOR_BGR2GRAY)
+
+
 def detect_templates(screen, template_files):
-    screen = _normalize(screen)
-    if screen is None:
+    screen_gray = _normalize_gray(screen)
+    if screen_gray is None:
         return False
     for filename in template_files:
-        template = _get_template(filename)
+        template = _get_template_gray(filename)
         if template is None:
             continue
-        result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, _ = cv2.minMaxLoc(result)
         if max_val >= MATCH_THRESHOLD:
             return True
     return False
 
 
-def detect_stage(screen):
-    screen = _normalize(screen)
-    if screen is None:
+def detect_stage(screen, stage_names=None):
+    screen_gray = _normalize_gray(screen)
+    if screen_gray is None:
         return None
-    for stage_name, template_files in STAGE_TEMPLATES.items():
+    if stage_names is None:
+        stage_names = STAGE_TEMPLATES.keys()
+    for stage_name in stage_names:
+        template_files = STAGE_TEMPLATES.get(stage_name)
+        if not template_files:
+            continue
         for filename in template_files:
-            template = _get_template(filename)
+            template = _get_template_gray(filename)
             if template is None:
                 continue
-            result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+            result = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, _ = cv2.minMaxLoc(result)
             if max_val >= MATCH_THRESHOLD:
                 return stage_name
