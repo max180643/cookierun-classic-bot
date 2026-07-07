@@ -178,6 +178,7 @@ def main():
                     purchase_desired_random_boost(options["desired_boost_template"], options["desired_boost_name"])
                 play_game()
                 detection_group = "IN_GAME"
+                time.sleep(0.2)
                 last_stage = None
             elif stage == "GAME_START":
                 print("🏁 Detected Stage: GAME_START")
