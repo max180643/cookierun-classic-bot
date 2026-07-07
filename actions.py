@@ -18,6 +18,7 @@ from config import (
     DEVICE_PORT,
     FAST_START_ITEM,
     FAST_START_USE_BUTTON,
+    INACTIVE_RELOAD_BUTTON,
     MULTI_BUY_BUTTON,
     MULTI_PURCHASE_BUTTON,
     PLAY_BUTTON,
@@ -205,4 +206,9 @@ def handle_anti_bot(screen):
 def handle_connection_lost():
     print("🔌 Handling Connection Lost...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, CONNECTION_LOST_RELOAD_BUTTON[0], CONNECTION_LOST_RELOAD_BUTTON[1])
+    time.sleep(random.uniform(10, 15))
+
+def handle_inactive():
+    print("💤 Handling Inactive state...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, INACTIVE_RELOAD_BUTTON[0], INACTIVE_RELOAD_BUTTON[1])
     time.sleep(random.uniform(10, 15))

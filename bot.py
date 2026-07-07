@@ -15,6 +15,7 @@ from actions import (
     complete_finish,
     handle_anti_bot,
     handle_connection_lost,
+    handle_inactive,
     open_relic_complete,
     play_game,
     purchase_cookie_relay,
@@ -36,6 +37,9 @@ from config import (
     BOOST_M30P_COLLISION_DAMAGE_TEMPLATE,
     BOOST_MAGNETIC_AURA_TEMPLATE,
     BOOST_REVIVE_ONCE_WITH_80HP_TEMPLATE,
+    DETECTION_ALWAYS_STAGES,
+    DETECTION_GROUPS,
+    DETECTION_RECOVERY_SCAN_INTERVAL,
     DEVICE_IP,
     DEVICE_PORT,
     SESSION_RESET_INTERVAL,
@@ -58,6 +62,19 @@ BOOST_CHOICES = [
     ("Magnetic Aura",           BOOST_MAGNETIC_AURA_TEMPLATE),
     ("2 Pit Lifts",             BOOST_2PIT_LIFTS_TEMPLATE),
 ]
+
+
+def get_detection_stage_names(group_name):
+    stage_names = []
+    # Add stages from the specified detection group
+    for stage_name in DETECTION_GROUPS[group_name]:
+        if stage_name not in stage_names:
+            stage_names.append(stage_name)
+    # Add stages that should always be detected
+    for stage_name in DETECTION_ALWAYS_STAGES:
+        if stage_name not in stage_names:
+            stage_names.append(stage_name)
+    return stage_names
 
 
 def prompt_user_options():
@@ -110,12 +127,20 @@ def main():
 
         last_stage = None
         is_first_game = True
+        detection_group = "PRE_GAME"
+        last_detected_time = time.time()
         session_start_time = time.time()
         session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-            stage = detect_stage(device_screen)
+            stage = detect_stage(device_screen, get_detection_stage_names(detection_group))
+            if stage is None:
+                if time.time() - last_detected_time >= DETECTION_RECOVERY_SCAN_INTERVAL[detection_group]:
+                    stage = detect_stage(device_screen)
+                    last_detected_time = time.time()
+            else:
+                last_detected_time = time.time()
 
             if stage == last_stage:
                 time.sleep(0.1)
@@ -132,6 +157,7 @@ def main():
                     time.sleep(30)
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    detection_group = "PRE_GAME"
                     last_stage = None
                     is_first_game = True
                     continue
@@ -141,6 +167,7 @@ def main():
                     time.sleep(delay)
                 is_first_game = False
                 start_game()
+                detection_group = "PRE_GAME"
             elif stage == "PURCHASE_ITEM":
                 print("🛒 Detected Stage: PURCHASE_ITEM")
                 if options["use_fast_start"]:
@@ -150,51 +177,65 @@ def main():
                 if options["use_desired_random_boost"]:
                     purchase_desired_random_boost(options["desired_boost_template"], options["desired_boost_name"])
                 play_game()
+                detection_group = "IN_GAME"
                 last_stage = None
             elif stage == "GAME_START":
                 print("🏁 Detected Stage: GAME_START")
                 if options["use_fast_start"]:
                     using_fast_start()
+                detection_group = "IN_GAME"
             elif stage == "GAME_RELAY":
                 print("🔄 Detected Stage: GAME_RELAY")
                 if options["use_cookie_relay"]:
                     using_cookie_relay()
+                detection_group = "IN_GAME"
             elif stage == "GAME_COMPLETE":
                 print("✅ Detected Stage: GAME_COMPLETE")
                 complete_finish()
+                detection_group = "POST_GAME"
             elif stage == "MYSTERY_BOX":
                 print("🎁 Detected Stage: MYSTERY_BOX")
                 accept_mystery_box()
                 time.sleep(3)
+                detection_group = "POST_GAME"
                 last_stage = None
             elif stage == "CONGRATULATIONS":
                 print("🎉 Detected Stage: CONGRATULATIONS")
                 accept_congratulations()
+                detection_group = "POST_GAME"
                 last_stage = None
             elif stage == "LEVEL_UP":
                 print("⬆️ Detected Stage: LEVEL_UP")
                 accept_level_up()
+                detection_group = "PRE_GAME"
             elif stage == "DAILY_CHECKIN":
                 print("📅 Detected Stage: DAILY_CHECKIN")
                 accept_daily_checkin()
+                detection_group = "PRE_GAME"
             elif stage == "DAILY_TREASURE":
                 print("💎 Detected Stage: DAILY_TREASURE")
                 accept_daily_treasure()
+                detection_group = "PRE_GAME"
             elif stage == "ENTER_LEAGUE":
                 print("🏆 Detected Stage: ENTER_LEAGUE")
                 accept_enter_league()
+                detection_group = "PRE_GAME"
             elif stage == "LEAGUE_RESULTS":
                 print("🏆 Detected Stage: LEAGUE_RESULTS")
                 accept_league_results()
+                detection_group = "PRE_GAME"
             elif stage == "PREVIOUS_RANK_RESULTS":
                 print("🏆 Detected Stage: PREVIOUS_RANK_RESULTS")
                 accept_previous_rank_results()
+                detection_group = "PRE_GAME"
             elif stage == "RELIC_COMPLETE":
                 print("🏺 Detected Stage: RELIC_COMPLETE")
                 open_relic_complete()
+                detection_group = "PRE_GAME"
             elif stage == "RELIC_CLAIM":
                 print("🏺 Detected Stage: RELIC_CLAIM")
                 accept_relic_claim()
+                detection_group = "PRE_GAME"
             elif stage == "ANTI_BOT":
                 print("⚠️ Detected Stage: ANTI_BOT")
                 handle_anti_bot(device_screen)
@@ -202,6 +243,10 @@ def main():
             elif stage == "CONNECTION_LOST":
                 print("🔌 Detected Stage: CONNECTION_LOST")
                 handle_connection_lost()
+                last_stage = None
+            elif stage == "INACTIVE":
+                print("💤 Detected Stage: INACTIVE")
+                handle_inactive()
                 last_stage = None
 
             time.sleep(0.25)

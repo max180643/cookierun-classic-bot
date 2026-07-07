@@ -15,6 +15,7 @@ from config import (
     ANTI_BOT_CARD_POS_6,
     BOOST_TEMPLATES,
     MATCH_THRESHOLD,
+    STAGE_REGIONS,
     STAGE_TEMPLATES,
     TEMPLATE_DIR,
 )
@@ -72,6 +73,13 @@ def _normalize_gray(img):
     return cv2.cvtColor(normalized, cv2.COLOR_BGR2GRAY)
 
 
+def _crop_region(img, region):
+    if region is None:
+        return img
+    x1, y1, x2, y2 = region
+    return img[y1:y2, x1:x2]
+
+
 def detect_templates(screen, template_files):
     screen_gray = _normalize_gray(screen)
     if screen_gray is None:
@@ -97,11 +105,17 @@ def detect_stage(screen, stage_names=None):
         template_files = STAGE_TEMPLATES.get(stage_name)
         if not template_files:
             continue
+        search_area = _crop_region(screen_gray, STAGE_REGIONS.get(stage_name))
         for filename in template_files:
             template = _get_template_gray(filename)
             if template is None:
                 continue
-            result = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
+            if (
+                search_area.shape[0] < template.shape[0]
+                or search_area.shape[1] < template.shape[1]
+            ):
+                continue
+            result = cv2.matchTemplate(search_area, template, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, _ = cv2.minMaxLoc(result)
             if max_val >= MATCH_THRESHOLD:
                 return stage_name
