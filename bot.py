@@ -161,6 +161,10 @@ def main():
                     last_stage = None
                     is_first_game = True
                     continue
+                if detection_group == "POST_GAME":
+                    detection_group = "PRE_GAME"
+                    last_stage = None
+                    continue
                 if not is_first_game:
                     delay = random.uniform(30, 60)
                     print(f"⏳ Waiting for {delay:.2f} seconds before starting the next game...")
