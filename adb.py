@@ -48,17 +48,45 @@ def safe_device_tap(ip: str, port: int, x: int, y: int):
     )
 
 
-def device_reset_app(ip: str, port: int, package: str = "com.devsisters.crg"):
+def device_is_app_running(ip: str, port: int, package: str) -> bool:
+    result = subprocess.run(
+        ["adb", "-s", f"{ip}:{port}", "shell", "pidof", package],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    return bool(result.stdout.strip())
+
+
+def device_reset_app(ip: str, port: int, package: str = "com.devsisters.crg", max_retries: int = 5):
+    print(f"🔄 Resetting app {package} on device at {ip}:{port}...")
     subprocess.run(
         ["adb", "-s", f"{ip}:{port}", "shell", "cmd", "activity", "force-stop", package],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
     )
-    time.sleep(3)
-    subprocess.run(
-        ["adb", "-s", f"{ip}:{port}", "shell", "monkey", "-p", package, "1"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
+    print(f"⏳ Waiting 15 seconds for app {package} to stop...")
+    time.sleep(15)
+
+    for attempt in range(1, max_retries + 1):
+        print(f"📱 Restarting app {package} on device at {ip}:{port} (attempt {attempt}/{max_retries})...")
+        subprocess.run(
+            ["adb", "-s", f"{ip}:{port}", "shell", "monkey", "-p", package, "1"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(f"⏳ Waiting 15 seconds to check if app started...")
+        time.sleep(15)
+
+        if device_is_app_running(ip, port, package):
+            print(f"✅ App {package} started successfully.")
+            return
+
+        print(f"💥 App {package} appears to have crashed after launch.")
+        if attempt < max_retries:
+            print(f"🔁 Retrying in 5 seconds...")
+            time.sleep(5)
+
+    raise Exception(f"❌ Failed to start {package} after {max_retries} attempts.")
