@@ -10,8 +10,10 @@ from actions import (
     accept_league_results,
     accept_level_up,
     accept_mystery_box,
+    accept_overtake_break_score,
     accept_previous_rank_results,
     accept_relic_claim,
+    accept_too_many_treasures,
     complete_finish,
     handle_anti_bot,
     handle_connection_lost,
@@ -232,6 +234,14 @@ def main():
             elif stage == "PREVIOUS_RANK_RESULTS":
                 print("🏆 Detected Stage: PREVIOUS_RANK_RESULTS")
                 accept_previous_rank_results()
+                detection_group = "PRE_GAME"
+            elif stage == "OVERTAKE_BREAK_SCORE":
+                print("🏆 Detected Stage: OVERTAKE_BREAK_SCORE")
+                accept_overtake_break_score()
+                detection_group = "PRE_GAME"
+            elif stage == "TOO_MANY_TREASURES":
+                print("💎 Detected Stage: TOO_MANY_TREASURES")
+                accept_too_many_treasures()
                 detection_group = "PRE_GAME"
             elif stage == "RELIC_COMPLETE":
                 print("🏺 Detected Stage: RELIC_COMPLETE")

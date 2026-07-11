@@ -10,7 +10,9 @@ from config import (
     ACCEPT_LEAGUE_RESULTS_BUTTON,
     ACCEPT_LEVEL_UP_BUTTON,
     ACCEPT_MYSTERY_BOX_BUTTON,
+    ACCEPT_OVERTAKE_BREAK_SCORE_BUTTON,
     ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON,
+    ACCEPT_TOO_MANY_TREASURES_BUTTON,
     COMPLETE_FINISH_BUTTON,
     COOKIE_RELAY_ITEM,
     COOKIE_RELAY_USE_BUTTON,
@@ -163,6 +165,15 @@ def accept_previous_rank_results():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON[0], ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
+def accept_too_many_treasures():
+    print("💎 Accepting Too Many Treasures...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_TOO_MANY_TREASURES_BUTTON[0], ACCEPT_TOO_MANY_TREASURES_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+def accept_overtake_break_score():
+    print("🏆 Accepting Overtake Break Score...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_OVERTAKE_BREAK_SCORE_BUTTON[0], ACCEPT_OVERTAKE_BREAK_SCORE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
 
 def open_relic_complete():
     print("🏺 Opening Relic Complete...")
