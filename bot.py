@@ -18,6 +18,7 @@ from actions import (
     handle_anti_bot,
     handle_connection_lost,
     handle_inactive,
+    handle_send_friend_life,
     open_relic_complete,
     play_game,
     purchase_cookie_relay,
@@ -158,6 +159,7 @@ def main():
                     print(f"🔄 Session reset triggered after {elapsed / 3600:.2f}h — restarting app...")
                     device_reset_app(DEVICE_IP, DEVICE_PORT)
                     time.sleep(30)
+                    handle_send_friend_life()
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
                     detection_group = "PRE_GAME"

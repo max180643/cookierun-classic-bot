@@ -83,17 +83,22 @@ def _crop_region(img, region):
 def detect_templates(screen, template_files, region=None):
     screen_gray = _normalize_gray(screen)
     if screen_gray is None:
-        return False
+        return []
     screen_gray = _crop_region(screen_gray, region)
+    offset_x, offset_y = (region[0], region[1]) if region is not None else (0, 0)
+    matches = []
     for filename in template_files:
         template = _get_template_gray(filename)
         if template is None:
             continue
         result = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
         if max_val >= MATCH_THRESHOLD:
-            return True
-    return False
+            th, tw = template.shape[:2]
+            x = max_loc[0] + offset_x
+            y = max_loc[1] + offset_y
+            matches.append((x, y, tw, th))
+    return matches
 
 
 def detect_stage(screen, stage_names=None):

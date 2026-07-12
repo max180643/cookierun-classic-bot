@@ -48,6 +48,27 @@ def safe_device_tap(ip: str, port: int, x: int, y: int):
     )
 
 
+def safe_device_scroll(ip: str, port: int, x: int, y: int, direction: str = "up", distance: int = 500, duration: int = 300):
+    jx = x + random.randint(-15, 15)
+    jy = y + random.randint(-15, 15)
+    direction_map = {
+        "up":    (jx, jy + distance, jx, jy - distance),
+        "down":  (jx, jy - distance, jx, jy + distance),
+        "left":  (jx + distance, jy, jx - distance, jy),
+        "right": (jx - distance, jy, jx + distance, jy),
+    }
+    if direction not in direction_map:
+        raise ValueError(f"Invalid direction '{direction}'. Use: up, down, left, right.")
+    x1, y1, x2, y2 = direction_map[direction]
+    subprocess.run(
+        ["adb", "-s", f"{ip}:{port}", "shell", "input", "swipe",
+         str(x1), str(y1), str(x2), str(y2), str(duration)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+
 def device_is_app_running(ip: str, port: int, package: str) -> bool:
     result = subprocess.run(
         ["adb", "-s", f"{ip}:{port}", "shell", "pidof", package],

@@ -1,7 +1,7 @@
 import random
 import time
 
-from adb import safe_device_tap
+from adb import safe_device_tap, safe_device_scroll, device_capture_screen
 from config import (
     ACCEPT_CONGRATULATIONS_BUTTON,
     ACCEPT_DAILY_CHECKIN_BUTTON,
@@ -20,6 +20,12 @@ from config import (
     DEVICE_PORT,
     FAST_START_ITEM,
     FAST_START_USE_BUTTON,
+    FRIEND_BOTTOM_LEADERBOARD_REGION,
+    FRIEND_BOTTOM_LEADERBOARD_TEMPLATE,
+    FRIEND_SEND_LIFE_REGION,
+    FRIEND_SEND_LIFE_TEMPLATE,
+    FRIEND_TOP_LEADERBOARD_REGION,
+    FRIEND_TOP_LEADERBOARD_TEMPLATE,
     INACTIVE_RELOAD_BUTTON,
     MULTI_BUY_BUTTON,
     MULTI_PURCHASE_BUTTON,
@@ -77,8 +83,6 @@ def purchase_random_boost():
 
 
 def purchase_desired_random_boost(desired_template, desired_name):
-    from adb import device_capture_screen
-
     print("🛒 Purchasing Desired Random Boost...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, RANDOM_BOOST_ITEM[0], RANDOM_BOOST_ITEM[1])
     time.sleep(random.uniform(0.8, 1.4))
@@ -220,7 +224,46 @@ def handle_connection_lost():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, CONNECTION_LOST_RELOAD_BUTTON[0], CONNECTION_LOST_RELOAD_BUTTON[1])
     time.sleep(random.uniform(10, 15))
 
+
 def handle_inactive():
     print("💤 Handling Inactive state...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, INACTIVE_RELOAD_BUTTON[0], INACTIVE_RELOAD_BUTTON[1])
     time.sleep(random.uniform(10, 15))
+
+
+def handle_send_friend_life():
+    print("💌 Handling Send Friend Life...")
+    screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+    # Scroll leaderboard to top stop when find the "FRIEND LEADERBOARD" template
+    while True:
+        if detect_templates(screen, FRIEND_TOP_LEADERBOARD_TEMPLATE, FRIEND_TOP_LEADERBOARD_REGION):
+            print("✅ Top of Friend Leaderboard reached.")
+            break
+        print("🔄 Scrolling up to find Send Friend Life...")
+        safe_device_scroll(DEVICE_IP, DEVICE_PORT, 435, 620, direction="down", distance=300, duration=150)
+        time.sleep(random.uniform(0.8, 1.4))
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+    # Scroll down, tap all send life buttons, stop when bottom leaderboard detected
+    while True:
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if detect_templates(screen, FRIEND_BOTTOM_LEADERBOARD_TEMPLATE, FRIEND_BOTTOM_LEADERBOARD_REGION):
+            print("✅ Bottom of Friend Leaderboard reached. Done sending lives.")
+            break
+        send_life_button_coords = detect_templates(screen, FRIEND_SEND_LIFE_TEMPLATE, FRIEND_SEND_LIFE_REGION)
+        if send_life_button_coords:
+            for x, y, w, h in send_life_button_coords:
+                print("💌 Sending life to friend...")
+                safe_device_tap(DEVICE_IP, DEVICE_PORT, x + w // 2, y + h // 2)
+                time.sleep(random.uniform(0.8, 1.4))
+                print("💌 Confirming send life...")
+                safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 460)
+                time.sleep(random.uniform(0.8, 1.4))
+                print("💌 Closing send life dialog...")
+                safe_device_tap(DEVICE_IP, DEVICE_PORT, 645, 463)
+                time.sleep(random.uniform(0.8, 1.4))
+        else:
+            print("🔄 No send life buttons found, scrolling down...")
+            safe_device_scroll(DEVICE_IP, DEVICE_PORT, 435, 260, direction="up", distance=70, duration=150)
+            time.sleep(random.uniform(0.8, 1.4))
+
+    
