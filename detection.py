@@ -80,10 +80,11 @@ def _crop_region(img, region):
     return img[y1:y2, x1:x2]
 
 
-def detect_templates(screen, template_files):
+def detect_templates(screen, template_files, region=None):
     screen_gray = _normalize_gray(screen)
     if screen_gray is None:
         return False
+    screen_gray = _crop_region(screen_gray, region)
     for filename in template_files:
         template = _get_template_gray(filename)
         if template is None:

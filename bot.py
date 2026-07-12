@@ -47,6 +47,7 @@ from config import (
     SESSION_RESET_INTERVAL,
 )
 from detection import detect_stage, load_templates
+from debug import save_debug_screen
 
 # -------------------
 # BOT OPTIONS

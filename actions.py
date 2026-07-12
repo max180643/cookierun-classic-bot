@@ -26,6 +26,7 @@ from config import (
     PLAY_BUTTON,
     PURCHASE_BUTTON,
     RANDOM_BOOST_ITEM,
+    RANDOM_BOOST_REGION,
     RELIC_CLAIM_BUTTON,
     RELIC_CLOSE_BUTTON,
     RELIC_COMPLETE_BUTTON,
@@ -94,7 +95,7 @@ def purchase_desired_random_boost(desired_template, desired_name):
             print("⚠️ Skipping Desired Random Boost. Please verify your in-game boost config is correct.")
             return
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-        if detect_templates(screen, desired_template):
+        if detect_templates(screen, desired_template, RANDOM_BOOST_REGION):
             print(f"✅ Desired Boost detected: {desired_name}!")
             break
         time.sleep(0.5)
