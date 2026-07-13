@@ -13,6 +13,8 @@ from config import (
     ACCEPT_OVERTAKE_BREAK_SCORE_BUTTON,
     ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON,
     ACCEPT_TOO_MANY_TREASURES_BUTTON,
+    ALL_LIVES_RECEIVED_AND_SENT_REGION,
+    ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE,
     COMPLETE_FINISH_BUTTON,
     COOKIE_RELAY_ITEM,
     COOKIE_RELAY_USE_BUTTON,
@@ -29,6 +31,9 @@ from config import (
     INACTIVE_RELOAD_BUTTON,
     MULTI_BUY_BUTTON,
     MULTI_PURCHASE_BUTTON,
+    NO_LIVES_TO_RECEIVE_REGION,
+    NO_LIVES_TO_RECEIVE_TEMPLATE,
+    NO_LIVES_TO_RECEIVE_TEMPLATE,
     PLAY_BUTTON,
     PURCHASE_BUTTON,
     RANDOM_BOOST_ITEM,
@@ -266,4 +271,44 @@ def handle_send_friend_life():
             safe_device_scroll(DEVICE_IP, DEVICE_PORT, 435, 260, direction="up", distance=70, duration=150)
             time.sleep(random.uniform(0.8, 1.4))
 
-    
+
+def handle_quick_receive_and_send_lives():
+    print("💌 Handling Quick Receive and Send Lives...")
+    # Tap the "Mail" button
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, 686, 677)
+    time.sleep(random.uniform(0.8, 1.4))
+    # Tap the "Lives" tab
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, 630, 148)
+    time.sleep(random.uniform(0.8, 1.4))
+    screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+    # No lives to receive
+    if detect_templates(screen, NO_LIVES_TO_RECEIVE_TEMPLATE, NO_LIVES_TO_RECEIVE_REGION):
+        print("💌 No lives to receive. Proceeding to send lives...")
+        # Close the mail dialog
+        safe_device_tap(DEVICE_IP, DEVICE_PORT, 1130, 87)
+        return
+    # Receive all lives
+    print("💌 Receiving all lives...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, 652, 612)
+    time.sleep(random.uniform(0.8, 1.4))
+    # Tap all send life buttons
+    while True:
+        # Check if all lifes received and sent!, so break the loop
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        all_lives_received_and_sent = detect_templates(screen, ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE, ALL_LIVES_RECEIVED_AND_SENT_REGION)
+        if all_lives_received_and_sent:
+            print("💌 All lives received and sent. Done!")
+            # Tap the "Confirm" button
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, 640, 462)
+            time.sleep(random.uniform(0.8, 1.4))
+            # Close the mail dialog
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, 1130, 87)
+            time.sleep(random.uniform(0.8, 1.4))
+            break
+        # Send lifes to friends
+        print("💌 Sending lives to friends...")
+        safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 459)
+        time.sleep(random.uniform(0.8, 1.4))
+    print("💌 Quick Receive and Send Lives completed.")
+
+ 

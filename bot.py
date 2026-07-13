@@ -18,6 +18,7 @@ from actions import (
     handle_anti_bot,
     handle_connection_lost,
     handle_inactive,
+    handle_quick_receive_and_send_lives,
     handle_send_friend_life,
     open_relic_complete,
     play_game,
@@ -135,6 +136,8 @@ def main():
         last_detected_time = time.time()
         session_start_time = time.time()
         session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+        last_lives_time = time.time()
+        lives_interval = random.uniform(25 * 60, 35 * 60)
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
@@ -162,10 +165,18 @@ def main():
                     handle_send_friend_life()
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    last_lives_time = time.time()
+                    lives_interval = random.uniform(25 * 60, 35 * 60)
                     detection_group = "PRE_GAME"
                     last_stage = None
                     is_first_game = True
                     continue
+                lives_elapsed = time.time() - last_lives_time
+                if lives_elapsed >= lives_interval:
+                    print(f"💌 ~30 min passed ({lives_elapsed / 60:.1f} min) — receiving and sending lives...")
+                    handle_quick_receive_and_send_lives()
+                    last_lives_time = time.time()
+                    lives_interval = random.uniform(25 * 60, 35 * 60)
                 if detection_group == "POST_GAME":
                     detection_group = "PRE_GAME"
                     last_stage = None
