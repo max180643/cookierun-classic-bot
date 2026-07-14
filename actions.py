@@ -6,6 +6,7 @@ from config import (
     ACCEPT_CONGRATULATIONS_BUTTON,
     ACCEPT_DAILY_CHECKIN_BUTTON,
     ACCEPT_DAILY_TREASURE_BUTTON,
+    ACCEPT_DAILY_NEW_BUTTON,
     ACCEPT_ENTER_LEAGUE_BUTTON,
     ACCEPT_LEAGUE_RESULTS_BUTTON,
     ACCEPT_LEVEL_UP_BUTTON,
@@ -157,6 +158,12 @@ def accept_daily_checkin():
 def accept_daily_treasure():
     print("💎 Accepting Daily Treasure...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_TREASURE_BUTTON[0], ACCEPT_DAILY_TREASURE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_daily_new():
+    print("📰 Accepting Daily New...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_NEW_BUTTON[0], ACCEPT_DAILY_NEW_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
 

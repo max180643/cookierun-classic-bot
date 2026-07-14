@@ -5,6 +5,7 @@ from adb import device_capture_screen, device_connect, device_reset_app
 from actions import (
     accept_congratulations,
     accept_daily_checkin,
+    accept_daily_new,
     accept_daily_treasure,
     accept_enter_league,
     accept_league_results,
@@ -237,6 +238,10 @@ def main():
             elif stage == "DAILY_TREASURE":
                 print("💎 Detected Stage: DAILY_TREASURE")
                 accept_daily_treasure()
+                detection_group = "PRE_GAME"
+            elif stage == "DAILY_NEW":
+                print("📰 Detected Stage: DAILY_NEW")
+                accept_daily_new()
                 detection_group = "PRE_GAME"
             elif stage == "ENTER_LEAGUE":
                 print("🏆 Detected Stage: ENTER_LEAGUE")
