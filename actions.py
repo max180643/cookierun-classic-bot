@@ -3,6 +3,7 @@ import time
 
 from adb import safe_device_tap, safe_device_scroll, device_capture_screen
 from config import (
+    ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON,
     ACCEPT_CONGRATULATIONS_BUTTON,
     ACCEPT_DAILY_CHECKIN_BUTTON,
     ACCEPT_DAILY_TREASURE_BUTTON,
@@ -16,7 +17,9 @@ from config import (
     ACCEPT_TOO_MANY_TREASURES_BUTTON,
     ALL_LIVES_RECEIVED_AND_SENT_REGION,
     ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE,
+    CLOSE_SEND_LIFE_DIALOG_BUTTON,
     COMPLETE_FINISH_BUTTON,
+    CONFIRM_SEND_LIFE_BUTTON,
     CONFIRM_SEND_LIFE_REGION,
     CONFIRM_SEND_LIFE_TEMPLATE,
     COOKIE_RELAY_ITEM,
@@ -32,6 +35,11 @@ from config import (
     FRIEND_TOP_LEADERBOARD_REGION,
     FRIEND_TOP_LEADERBOARD_TEMPLATE,
     INACTIVE_RELOAD_BUTTON,
+    LEADERBOARD_BOTTOM_POSITION,
+    LEADERBOARD_TOP_POSITION,
+    MAIL_BOX_BUTTON,
+    MAIL_BOX_LIVES_TAB_BUTTON,
+    MAIL_BOX_CLOSE_BUTTON,
     MULTI_BUY_BUTTON,
     MULTI_PURCHASE_BUTTON,
     NO_LIVES_TO_RECEIVE_REGION,
@@ -39,6 +47,7 @@ from config import (
     NO_LIVES_TO_RECEIVE_TEMPLATE,
     PLAY_BUTTON,
     PURCHASE_BUTTON,
+    QUICK_RECEIVE_AND_SEND_LIVES_BUTTON,
     RANDOM_BOOST_ITEM,
     RANDOM_BOOST_REGION,
     RELIC_CLAIM_BUTTON,
@@ -254,7 +263,7 @@ def handle_send_friend_life():
             print("✅ Top of Friend Leaderboard reached.")
             break
         print("🔄 Scrolling up to find Send Friend Life...")
-        safe_device_scroll(DEVICE_IP, DEVICE_PORT, 435, 620, direction="down", distance=300, duration=150)
+        safe_device_scroll(DEVICE_IP, DEVICE_PORT, LEADERBOARD_BOTTOM_POSITION[0], LEADERBOARD_BOTTOM_POSITION[1], direction="down", distance=300, duration=150)
         time.sleep(random.uniform(0.8, 1.4))
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
     # Scroll down, tap all send life buttons, stop when bottom leaderboard detected
@@ -270,14 +279,14 @@ def handle_send_friend_life():
                 safe_device_tap(DEVICE_IP, DEVICE_PORT, x + w // 2, y + h // 2)
                 time.sleep(random.uniform(0.8, 1.4))
                 print("💌 Confirming send life...")
-                safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 460)
+                safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_SEND_LIFE_BUTTON[0], CONFIRM_SEND_LIFE_BUTTON[1])
                 time.sleep(random.uniform(0.8, 1.4))
                 print("💌 Closing send life dialog...")
-                safe_device_tap(DEVICE_IP, DEVICE_PORT, 645, 463)
+                safe_device_tap(DEVICE_IP, DEVICE_PORT, CLOSE_SEND_LIFE_DIALOG_BUTTON[0], CLOSE_SEND_LIFE_DIALOG_BUTTON[1])
                 time.sleep(random.uniform(0.8, 1.4))
         else:
             print("🔄 No send life buttons found, scrolling down...")
-            safe_device_scroll(DEVICE_IP, DEVICE_PORT, 435, 260, direction="up", distance=70, duration=150)
+            safe_device_scroll(DEVICE_IP, DEVICE_PORT, LEADERBOARD_TOP_POSITION[0], LEADERBOARD_TOP_POSITION[1], direction="up", distance=70, duration=150)
             time.sleep(random.uniform(0.8, 1.4))
 
 
@@ -285,21 +294,21 @@ def handle_quick_receive_and_send_lives():
     print("💌 Handling Quick Receive and Send Lives...")
     time.sleep(random.uniform(0.8, 1.4))
     # Tap the "Mail" button
-    safe_device_tap(DEVICE_IP, DEVICE_PORT, 686, 677)
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_BUTTON[0], MAIL_BOX_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
     # Tap the "Lives" tab
-    safe_device_tap(DEVICE_IP, DEVICE_PORT, 630, 148)
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_LIVES_TAB_BUTTON[0], MAIL_BOX_LIVES_TAB_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
     screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
     # No lives to receive
     if detect_templates(screen, NO_LIVES_TO_RECEIVE_TEMPLATE, NO_LIVES_TO_RECEIVE_REGION):
         print("💌 No lives to receive. Proceeding to send lives...")
         # Close the mail dialog
-        safe_device_tap(DEVICE_IP, DEVICE_PORT, 1130, 87)
+        safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_CLOSE_BUTTON[0], MAIL_BOX_CLOSE_BUTTON[1])
         return
     # Receive all lives
     print("💌 Receiving all lives...")
-    safe_device_tap(DEVICE_IP, DEVICE_PORT, 652, 612)
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, QUICK_RECEIVE_AND_SEND_LIVES_BUTTON[0], QUICK_RECEIVE_AND_SEND_LIVES_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
     # Tap all send life buttons
     while True:
@@ -309,17 +318,17 @@ def handle_quick_receive_and_send_lives():
         if all_lives_received_and_sent:
             print("💌 All lives received and sent. Done!")
             # Tap the "Confirm" button
-            safe_device_tap(DEVICE_IP, DEVICE_PORT, 640, 462)
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON[0], ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
             # Close the mail dialog
-            safe_device_tap(DEVICE_IP, DEVICE_PORT, 1130, 87)
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_CLOSE_BUTTON[0], MAIL_BOX_CLOSE_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
             break
         # Send lifes to friends
         confirm_send_life_button_coords = detect_templates(screen, CONFIRM_SEND_LIFE_TEMPLATE, CONFIRM_SEND_LIFE_REGION)
         if confirm_send_life_button_coords:
             print("💌 Sending lives to friends...")
-            safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 459)
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_SEND_LIFE_BUTTON[0], CONFIRM_SEND_LIFE_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
     print("💌 Quick Receive and Send Lives completed.")
  
