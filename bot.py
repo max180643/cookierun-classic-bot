@@ -177,6 +177,7 @@ def main():
                     handle_quick_receive_and_send_lives()
                     last_lives_time = time.time()
                     lives_interval = random.uniform(25 * 60, 35 * 60)
+                    continue
                 if detection_group == "POST_GAME":
                     detection_group = "PRE_GAME"
                     last_stage = None

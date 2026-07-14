@@ -16,6 +16,8 @@ from config import (
     ALL_LIVES_RECEIVED_AND_SENT_REGION,
     ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE,
     COMPLETE_FINISH_BUTTON,
+    CONFIRM_SEND_LIFE_REGION,
+    CONFIRM_SEND_LIFE_TEMPLATE,
     COOKIE_RELAY_ITEM,
     COOKIE_RELAY_USE_BUTTON,
     DEVICE_IP,
@@ -274,6 +276,7 @@ def handle_send_friend_life():
 
 def handle_quick_receive_and_send_lives():
     print("💌 Handling Quick Receive and Send Lives...")
+    time.sleep(random.uniform(0.8, 1.4))
     # Tap the "Mail" button
     safe_device_tap(DEVICE_IP, DEVICE_PORT, 686, 677)
     time.sleep(random.uniform(0.8, 1.4))
@@ -306,9 +309,10 @@ def handle_quick_receive_and_send_lives():
             time.sleep(random.uniform(0.8, 1.4))
             break
         # Send lifes to friends
-        print("💌 Sending lives to friends...")
-        safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 459)
-        time.sleep(random.uniform(0.8, 1.4))
+        confirm_send_life_button_coords = detect_templates(screen, CONFIRM_SEND_LIFE_TEMPLATE, CONFIRM_SEND_LIFE_REGION)
+        if confirm_send_life_button_coords:
+            print("💌 Sending lives to friends...")
+            safe_device_tap(DEVICE_IP, DEVICE_PORT, 797, 459)
+            time.sleep(random.uniform(0.8, 1.4))
     print("💌 Quick Receive and Send Lives completed.")
-
  
