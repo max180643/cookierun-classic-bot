@@ -159,8 +159,8 @@ def main():
 
             if stage == "MAINMENU":
                 print("🎮 Detected Stage: MAINMENU")
-                # Wait mainmenu screen refresh
-                print("⏳ Waiting 5 seconds for mainmenu screen refresh...")
+                # Wait screen refresh
+                print("⏳ Waiting 5 seconds for screen refresh...")
                 time.sleep(5)
                 if pending_send_friend_life:
                     print("💌 Sending friend lives after app reset...")

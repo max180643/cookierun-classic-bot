@@ -297,7 +297,7 @@ def handle_send_friend_life():
 
 
 def handle_quick_receive_and_send_lives():
-    print("💌 Handling Quick Receive and Send Lives...")
+    print("✉️ Handling Quick Receive and Send Lives...")
     time.sleep(random.uniform(0.8, 1.4))
     # Tap the "Mail" button
     safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_BUTTON[0], MAIL_BOX_BUTTON[1])
@@ -308,12 +308,12 @@ def handle_quick_receive_and_send_lives():
     screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
     # No lives to receive
     if detect_templates(screen, NO_LIVES_TO_RECEIVE_TEMPLATE, NO_LIVES_TO_RECEIVE_REGION):
-        print("💌 No lives to receive. Proceeding to send lives...")
+        print("✉️ No lives to receive. Proceeding to send lives...")
         # Close the mail dialog
         safe_device_tap(DEVICE_IP, DEVICE_PORT, MAIL_BOX_CLOSE_BUTTON[0], MAIL_BOX_CLOSE_BUTTON[1])
         return
     # Receive all lives
-    print("💌 Receiving all lives...")
+    print("✉️ Receiving all lives...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, QUICK_RECEIVE_AND_SEND_LIVES_BUTTON[0], QUICK_RECEIVE_AND_SEND_LIVES_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
     # Tap all send life buttons
@@ -322,7 +322,7 @@ def handle_quick_receive_and_send_lives():
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
         all_lives_received_and_sent = detect_templates(screen, ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE, ALL_LIVES_RECEIVED_AND_SENT_REGION)
         if all_lives_received_and_sent:
-            print("💌 All lives received and sent. Done!")
+            print("✉️ All lives received and sent. Done!")
             # Tap the "Confirm" button
             safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON[0], ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
@@ -333,8 +333,8 @@ def handle_quick_receive_and_send_lives():
         # Send lifes to friends
         confirm_send_life_button_coords = detect_templates(screen, CONFIRM_SEND_LIFE_TEMPLATE, CONFIRM_SEND_LIFE_REGION)
         if confirm_send_life_button_coords:
-            print("💌 Sending lives to friends...")
+            print("✉️ Sending lives to friends...")
             safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_SEND_LIFE_BUTTON[0], CONFIRM_SEND_LIFE_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
-    print("💌 Quick Receive and Send Lives completed.")
+    print("✉️ Quick Receive and Send Lives completed.")
  
