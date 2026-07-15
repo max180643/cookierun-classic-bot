@@ -267,6 +267,7 @@ def handle_send_friend_life():
         time.sleep(random.uniform(0.8, 1.4))
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
     # Scroll down, tap all send life buttons, stop when bottom leaderboard detected
+    no_button_scroll_count = 0
     while True:
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
         if detect_templates(screen, FRIEND_BOTTOM_LEADERBOARD_TEMPLATE, FRIEND_BOTTOM_LEADERBOARD_REGION):
@@ -274,6 +275,7 @@ def handle_send_friend_life():
             break
         send_life_button_coords = detect_templates(screen, FRIEND_SEND_LIFE_TEMPLATE, FRIEND_SEND_LIFE_REGION)
         if send_life_button_coords:
+            no_button_scroll_count = 0
             for x, y, w, h in send_life_button_coords:
                 print("💌 Sending life to friend...")
                 safe_device_tap(DEVICE_IP, DEVICE_PORT, x + w // 2, y + h // 2)
@@ -285,7 +287,11 @@ def handle_send_friend_life():
                 safe_device_tap(DEVICE_IP, DEVICE_PORT, CLOSE_SEND_LIFE_DIALOG_BUTTON[0], CLOSE_SEND_LIFE_DIALOG_BUTTON[1])
                 time.sleep(random.uniform(0.8, 1.4))
         else:
-            print("🔄 No send life buttons found, scrolling down...")
+            no_button_scroll_count += 1
+            if no_button_scroll_count >= 30:
+                print("⚠️ No send life buttons found for 30 consecutive scrolls. Giving up.")
+                break
+            print(f"🔄 No send life buttons found, scrolling down... ({no_button_scroll_count}/30)")
             safe_device_scroll(DEVICE_IP, DEVICE_PORT, LEADERBOARD_TOP_POSITION[0], LEADERBOARD_TOP_POSITION[1], direction="up", distance=70, duration=150)
             time.sleep(random.uniform(0.8, 1.4))
 
