@@ -139,6 +139,7 @@ def main():
         session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
         last_lives_time = time.time()
         lives_interval = random.uniform(25 * 60, 35 * 60)
+        pending_send_friend_life = False
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
@@ -158,12 +159,21 @@ def main():
 
             if stage == "MAINMENU":
                 print("🎮 Detected Stage: MAINMENU")
+                # Wait mainmenu screen refresh
+                print("⏳ Waiting 5 seconds for mainmenu screen refresh...")
+                time.sleep(5)
+                if pending_send_friend_life:
+                    print("💌 Sending friend lives after app reset...")
+                    handle_send_friend_life()
+                    pending_send_friend_life = False
+                    last_lives_time = time.time()
+                    last_stage = None
+                    continue
                 elapsed = time.time() - session_start_time
                 if elapsed >= session_reset_interval:
                     print(f"🔄 Session reset triggered after {elapsed / 3600:.2f}h — restarting app...")
                     device_reset_app(DEVICE_IP, DEVICE_PORT)
-                    time.sleep(30)
-                    handle_send_friend_life()
+                    pending_send_friend_life = True
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
                     last_lives_time = time.time()
