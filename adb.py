@@ -105,7 +105,7 @@ def device_reset_app(ip: str, port: int, package: str = "com.devsisters.crg", ma
             print(f"📊 App {package} is running, verifying stability...")
             stable = True
             for check in range(1, 4):
-                time.sleep(10)
+                time.sleep(20)
                 if not device_is_app_running(ip, port, package):
                     print(f"💥 App {package} crashed during stability check ({check}/3).")
                     stable = False
