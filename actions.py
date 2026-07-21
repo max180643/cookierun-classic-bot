@@ -5,6 +5,7 @@ from adb import safe_device_tap, safe_device_scroll, device_capture_screen
 from config import (
     ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON,
     ACCEPT_CONGRATULATIONS_BUTTON,
+    ACCEPT_DAILY_CHECKIN_BOOST_SET_BUTTON,
     ACCEPT_DAILY_CHECKIN_BUTTON,
     ACCEPT_DAILY_TREASURE_BUTTON,
     ACCEPT_DAILY_NEW_BUTTON,
@@ -161,6 +162,12 @@ def accept_level_up():
 def accept_daily_checkin():
     print("📅 Accepting Daily Check-in...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_CHECKIN_BUTTON[0], ACCEPT_DAILY_CHECKIN_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
+
+def accept_daily_checkin_boost_set():
+    print("📅 Accepting Daily Check-in Boost Set...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_DAILY_CHECKIN_BOOST_SET_BUTTON[0], ACCEPT_DAILY_CHECKIN_BOOST_SET_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
 

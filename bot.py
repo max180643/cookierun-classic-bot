@@ -5,6 +5,7 @@ from adb import device_capture_screen, device_connect, device_reset_app
 from actions import (
     accept_congratulations,
     accept_daily_checkin,
+    accept_daily_checkin_boost_set,
     accept_daily_new,
     accept_daily_treasure,
     accept_enter_league,
@@ -244,6 +245,10 @@ def main():
             elif stage == "DAILY_CHECKIN":
                 print("📅 Detected Stage: DAILY_CHECKIN")
                 accept_daily_checkin()
+                detection_group = "PRE_GAME"
+            elif stage == "DAILY_CHECKIN_BOOST_SET":
+                print("📅 Detected Stage: DAILY_CHECKIN_BOOST_SET")
+                accept_daily_checkin_boost_set()
                 detection_group = "PRE_GAME"
             elif stage == "DAILY_TREASURE":
                 print("💎 Detected Stage: DAILY_TREASURE")
