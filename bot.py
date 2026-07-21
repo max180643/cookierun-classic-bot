@@ -17,7 +17,6 @@ from actions import (
     accept_too_many_treasures,
     complete_finish,
     handle_anti_bot,
-    handle_connection_lost,
     handle_inactive,
     handle_quick_receive_and_send_lives,
     handle_send_friend_life,
@@ -288,8 +287,14 @@ def main():
                 last_stage = None
             elif stage == "CONNECTION_LOST":
                 print("🔌 Detected Stage: CONNECTION_LOST")
-                handle_connection_lost()
+                device_reset_app(DEVICE_IP, DEVICE_PORT)
+                session_start_time = time.time()
+                session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                last_lives_time = time.time()
+                lives_interval = random.uniform(25 * 60, 35 * 60)
+                detection_group = "PRE_GAME"
                 last_stage = None
+                is_first_game = True
             elif stage == "INACTIVE":
                 print("💤 Detected Stage: INACTIVE")
                 handle_inactive()
