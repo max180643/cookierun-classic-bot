@@ -1,7 +1,7 @@
 import random
 import time
 
-from adb import device_capture_screen, device_connect, device_reset_app
+from adb import device_capture_screen, device_connect, device_reset_app, device_tap
 from actions import (
     accept_congratulations,
     accept_daily_checkin,
@@ -16,6 +16,7 @@ from actions import (
     accept_previous_rank_results,
     accept_relic_claim,
     accept_too_many_treasures,
+    close_announcement_dialog,
     complete_finish,
     handle_anti_bot,
     handle_inactive,
@@ -173,6 +174,7 @@ def main():
                 if elapsed >= session_reset_interval:
                     print(f"🔄 Session reset triggered after {elapsed / 3600:.2f}h — restarting app...")
                     device_reset_app(DEVICE_IP, DEVICE_PORT)
+                    close_announcement_dialog()
                     pending_send_friend_life = True
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
@@ -293,6 +295,7 @@ def main():
             elif stage == "CONNECTION_LOST":
                 print("🔌 Detected Stage: CONNECTION_LOST")
                 device_reset_app(DEVICE_IP, DEVICE_PORT)
+                close_announcement_dialog()
                 session_start_time = time.time()
                 session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
                 last_lives_time = time.time()

@@ -18,6 +18,7 @@ from config import (
     ACCEPT_TOO_MANY_TREASURES_BUTTON,
     ALL_LIVES_RECEIVED_AND_SENT_REGION,
     ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE,
+    CLOSE_ANNOUNCEMENT_DIALOG_BUTTON,
     CLOSE_SEND_LIFE_DIALOG_BUTTON,
     COMPLETE_FINISH_BUTTON,
     CONFIRM_SEND_LIFE_BUTTON,
@@ -344,4 +345,12 @@ def handle_quick_receive_and_send_lives():
             safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_SEND_LIFE_BUTTON[0], CONFIRM_SEND_LIFE_BUTTON[1])
             time.sleep(random.uniform(0.8, 1.4))
     print("✉️ Quick Receive and Send Lives completed.")
- 
+
+
+def close_announcement_dialog():
+    print("🖱️ Closing announcement dialog...")
+    for i in range(5):
+        print(f"🖱️ Tapping close announcement dialog button {i+1}/5")
+        safe_device_tap(DEVICE_IP, DEVICE_PORT, CLOSE_ANNOUNCEMENT_DIALOG_BUTTON[0], CLOSE_ANNOUNCEMENT_DIALOG_BUTTON[1])
+        time.sleep(random.uniform(0.8, 1.4))
+
