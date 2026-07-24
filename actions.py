@@ -28,6 +28,7 @@ from config import (
     COOKIE_RELAY_USE_BUTTON,
     DEVICE_IP,
     DEVICE_PORT,
+    EXIT_PARTY_RUN_MODE_BUTTON,
     FAST_START_ITEM,
     FAST_START_USE_BUTTON,
     FRIEND_BOTTOM_LEADERBOARD_REGION,
@@ -353,4 +354,10 @@ def close_announcement_dialog():
         print(f"🖱️ Tapping close announcement dialog button {i+1}/5")
         safe_device_tap(DEVICE_IP, DEVICE_PORT, CLOSE_ANNOUNCEMENT_DIALOG_BUTTON[0], CLOSE_ANNOUNCEMENT_DIALOG_BUTTON[1])
         time.sleep(random.uniform(0.8, 1.4))
+
+
+def close_party_run_mode():
+    print("🖱️ Closing Party Run mode...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, EXIT_PARTY_RUN_MODE_BUTTON[0], EXIT_PARTY_RUN_MODE_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
 
