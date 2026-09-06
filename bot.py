@@ -27,6 +27,7 @@ from actions import (
     purchase_cookie_relay,
     purchase_desired_random_boost,
     purchase_fast_start,
+    recover_friend_overlay,
     start_game,
     using_cookie_relay,
     using_fast_start,
@@ -49,6 +50,7 @@ from config import (
     DEVICE_IP,
     DEVICE_PORT,
     SESSION_RESET_INTERVAL,
+    UNKNOWN_STAGE_RESET_TIMEOUT,
 )
 from detection import detect_stage, load_templates
 from debug import save_debug_screen
@@ -90,6 +92,13 @@ def get_detection_stage_names(group_name, exclude=None):
     if exclude:
         stage_names = [s for s in stage_names if s not in exclude]
     return stage_names
+
+
+def unknown_stage_timed_out(started_at, detection_group, now=None):
+    if started_at is None:
+        return False
+    current_time = time.monotonic() if now is None else now
+    return current_time - started_at >= UNKNOWN_STAGE_RESET_TIMEOUT[detection_group]
 
 
 def prompt_user_options():
@@ -152,6 +161,7 @@ def main():
         last_lives_time = time.time()
         lives_interval = random.uniform(25 * 60, 35 * 60)
         pending_send_friend_life = False
+        unknown_stage_since = None
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
@@ -162,6 +172,35 @@ def main():
                     last_detected_time = time.time()
             else:
                 last_detected_time = time.time()
+
+            if stage is None and recover_friend_overlay(device_screen):
+                unknown_stage_since = None
+                last_stage = None
+                continue
+
+            if stage is None:
+                if unknown_stage_since is None:
+                    unknown_stage_since = time.monotonic()
+                elif unknown_stage_timed_out(unknown_stage_since, detection_group):
+                    timeout = UNKNOWN_STAGE_RESET_TIMEOUT[detection_group]
+                    print(f"⚠️ Stage unknown for {timeout:.0f}s. Saving diagnostics and restarting app...")
+                    save_debug_screen(device_screen)
+                    device_reset_app(DEVICE_IP, DEVICE_PORT)
+                    time.sleep(5)
+                    close_announcement_dialog()
+                    session_start_time = time.time()
+                    session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    last_lives_time = time.time()
+                    lives_interval = random.uniform(25 * 60, 35 * 60)
+                    pending_send_friend_life = False
+                    detection_group = "PRE_GAME"
+                    last_detected_time = time.time()
+                    last_stage = None
+                    unknown_stage_since = None
+                    is_first_game = True
+                    continue
+            else:
+                unknown_stage_since = None
 
             if stage == last_stage:
                 time.sleep(0.1)
