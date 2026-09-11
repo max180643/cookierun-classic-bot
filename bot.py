@@ -2,6 +2,7 @@ import random
 import time
 
 from adb import device_capture_screen, device_connect, device_reset_app, device_tap
+from alerts import send_telegram_alert
 from actions import (
     accept_congratulations,
     accept_daily_checkin,
@@ -14,11 +15,13 @@ from actions import (
     accept_mystery_box,
     accept_overtake_break_score,
     accept_previous_rank_results,
+    confirm_previous_results,
     accept_relic_claim,
     accept_too_many_treasures,
     close_announcement_dialog,
     complete_finish,
     handle_anti_bot,
+    handle_failed_to_retrieve_data,
     handle_inactive,
     handle_quick_receive_and_send_lives,
     handle_send_friend_life,
@@ -30,6 +33,7 @@ from actions import (
     start_game,
     using_cookie_relay,
     using_fast_start,
+    recover_friend_overlay,
 )
 from config import (
     BOOST_17P_BASE_SPEED_TEMPLATE,
@@ -49,6 +53,10 @@ from config import (
     DEVICE_IP,
     DEVICE_PORT,
     SESSION_RESET_INTERVAL,
+    LIVES_INTERVAL,
+    MAX_FAILED_TO_RETRIEVE_DATA_RETRIES,
+    MAX_UNKNOWN_STAGE_RESTARTS,
+    UNKNOWN_STAGE_RESET_TIMEOUT,
 )
 from detection import detect_stage, load_templates
 from debug import save_debug_screen
@@ -90,6 +98,13 @@ def get_detection_stage_names(group_name, exclude=None):
     if exclude:
         stage_names = [s for s in stage_names if s not in exclude]
     return stage_names
+
+
+def unknown_stage_timed_out(started_at, detection_group, now=None):
+    if started_at is None:
+        return False
+    current_time = time.monotonic() if now is None else now
+    return current_time - started_at >= UNKNOWN_STAGE_RESET_TIMEOUT[detection_group]
 
 
 def prompt_user_options():
@@ -150,8 +165,11 @@ def main():
         session_start_time = time.time()
         session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
         last_lives_time = time.time()
-        lives_interval = random.uniform(25 * 60, 35 * 60)
+        lives_interval = random.uniform(*LIVES_INTERVAL)
         pending_send_friend_life = False
+        unknown_stage_since = None
+        unknown_restart_count = 0
+        data_retry_count = 0
 
         while True:
             device_screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
@@ -163,6 +181,45 @@ def main():
             else:
                 last_detected_time = time.time()
 
+            if stage is None and recover_friend_overlay(device_screen):
+                unknown_stage_since = None
+                last_stage = None
+                continue
+
+            if stage is None:
+                if unknown_stage_since is None:
+                    unknown_stage_since = time.monotonic()
+                elif unknown_stage_timed_out(unknown_stage_since, detection_group):
+                    timeout = UNKNOWN_STAGE_RESET_TIMEOUT[detection_group]
+                    unknown_restart_count += 1
+                    print(f"⚠️ Stage unknown for {timeout:.0f}s. Saving diagnostics and restarting app... (attempt {unknown_restart_count}/{MAX_UNKNOWN_STAGE_RESTARTS})")
+                    save_debug_screen(device_screen)
+                    if unknown_restart_count >= MAX_UNKNOWN_STAGE_RESTARTS:
+                        print(f"❌ Stage still unknown after {MAX_UNKNOWN_STAGE_RESTARTS} consecutive restarts. Stopping bot for manual check.")
+                        send_telegram_alert(
+                            f"❌ CookieRun bot stopped: stage unknown after {MAX_UNKNOWN_STAGE_RESTARTS} consecutive restarts. Manual check needed."
+                        )
+                        break
+                    device_reset_app(DEVICE_IP, DEVICE_PORT)
+                    time.sleep(5)
+                    close_announcement_dialog()
+                    session_start_time = time.time()
+                    session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    last_lives_time = time.time()
+                    lives_interval = random.uniform(*LIVES_INTERVAL)
+                    pending_send_friend_life = False
+                    detection_group = "PRE_GAME"
+                    last_detected_time = time.time()
+                    last_stage = None
+                    unknown_stage_since = None
+                    is_first_game = True
+                    continue
+            else:
+                unknown_stage_since = None
+                unknown_restart_count = 0
+                if stage != "FAILED_TO_RETRIEVE_DATA":
+                    data_retry_count = 0
+
             if stage == last_stage:
                 time.sleep(0.1)
                 continue
@@ -172,11 +229,12 @@ def main():
             if stage == "MAINMENU":
                 print("🎮 Detected Stage: MAINMENU")
                 # Wait screen refresh
-                print("⏳ Waiting 5 seconds for screen refresh...")
-                time.sleep(5)
+                print("⏳ Waiting 3 seconds for screen refresh...")
+                time.sleep(3)
                 if pending_send_friend_life:
                     print("💌 Sending friend lives after app reset...")
-                    handle_send_friend_life()
+                    if not handle_send_friend_life():
+                        print("⚠️ Send-life flow gave up — leaving it to the idle-stage restart if the screen is stuck.")
                     pending_send_friend_life = False
                     last_lives_time = time.time()
                     last_stage = None
@@ -191,7 +249,7 @@ def main():
                     session_start_time = time.time()
                     session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
                     last_lives_time = time.time()
-                    lives_interval = random.uniform(25 * 60, 35 * 60)
+                    lives_interval = random.uniform(*LIVES_INTERVAL)
                     detection_group = "PRE_GAME"
                     last_stage = None
                     is_first_game = True
@@ -201,7 +259,7 @@ def main():
                     print(f"💌 ~30 min passed ({lives_elapsed / 60:.1f} min) — receiving and sending lives...")
                     handle_quick_receive_and_send_lives()
                     last_lives_time = time.time()
-                    lives_interval = random.uniform(25 * 60, 35 * 60)
+                    lives_interval = random.uniform(*LIVES_INTERVAL)
                     last_stage = None
                     continue
                 if detection_group == "POST_GAME":
@@ -209,7 +267,7 @@ def main():
                     last_stage = None
                     continue
                 if not is_first_game:
-                    delay = random.uniform(30, 60)
+                    delay = random.uniform(1, 4)
                     print(f"⏳ Waiting for {delay:.2f} seconds before starting the next game...")
                     time.sleep(delay)
                 is_first_game = False
@@ -284,6 +342,11 @@ def main():
                 print("🏆 Detected Stage: PREVIOUS_RANK_RESULTS")
                 accept_previous_rank_results()
                 detection_group = "PRE_GAME"
+            elif stage == "PREVIOUS_RESULTS_CONFIRM":
+                print("📋 Detected Stage: PREVIOUS_RESULTS_CONFIRM")
+                confirm_previous_results()
+                detection_group = "IN_GAME"
+                last_stage = None
             elif stage == "OVERTAKE_BREAK_SCORE":
                 print("🏆 Detected Stage: OVERTAKE_BREAK_SCORE")
                 accept_overtake_break_score()
@@ -313,10 +376,31 @@ def main():
                 session_start_time = time.time()
                 session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
                 last_lives_time = time.time()
-                lives_interval = random.uniform(25 * 60, 35 * 60)
+                lives_interval = random.uniform(*LIVES_INTERVAL)
                 detection_group = "PRE_GAME"
                 last_stage = None
                 is_first_game = True
+            elif stage == "FAILED_TO_RETRIEVE_DATA":
+                data_retry_count += 1
+                print(f"⚠️ Detected Stage: FAILED_TO_RETRIEVE_DATA (attempt {data_retry_count}/{MAX_FAILED_TO_RETRIEVE_DATA_RETRIES})")
+                if data_retry_count >= MAX_FAILED_TO_RETRIEVE_DATA_RETRIES:
+                    print(f"❌ Data retrieval kept failing after {MAX_FAILED_TO_RETRIEVE_DATA_RETRIES} attempts. Forcing full app restart...")
+                    save_debug_screen(device_screen)
+                    device_reset_app(DEVICE_IP, DEVICE_PORT)
+                    time.sleep(5)
+                    close_announcement_dialog()
+                    session_start_time = time.time()
+                    session_reset_interval = random.uniform(*SESSION_RESET_INTERVAL)
+                    last_lives_time = time.time()
+                    lives_interval = random.uniform(*LIVES_INTERVAL)
+                    pending_send_friend_life = False
+                    detection_group = "PRE_GAME"
+                    last_detected_time = time.time()
+                    is_first_game = True
+                    data_retry_count = 0
+                else:
+                    handle_failed_to_retrieve_data()
+                last_stage = None
             elif stage == "INACTIVE":
                 print("💤 Detected Stage: INACTIVE")
                 handle_inactive()
@@ -326,3 +410,4 @@ def main():
         print("🛑 Bot stopped by user.")
     except Exception as e:
         print(f"❌ An error occurred: {e}")
+        send_telegram_alert(f"❌ CookieRun bot crashed: {e}")

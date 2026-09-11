@@ -1,6 +1,8 @@
 import random
 import time
 
+import numpy as np
+
 from adb import safe_device_tap, safe_device_scroll, device_capture_screen
 from config import (
     ACCEPT_ALL_LIVES_RECEIVED_AND_SENT_BUTTON,
@@ -15,9 +17,11 @@ from config import (
     ACCEPT_MYSTERY_BOX_BUTTON,
     ACCEPT_OVERTAKE_BREAK_SCORE_BUTTON,
     ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON,
+    CONFIRM_PREVIOUS_RESULTS_BUTTON,
     ACCEPT_TOO_MANY_TREASURES_BUTTON,
     ALL_LIVES_RECEIVED_AND_SENT_REGION,
     ALL_LIVES_RECEIVED_AND_SENT_TEMPLATE,
+    CANCEL_SEND_LIFE_BUTTON,
     CLOSE_ANNOUNCEMENT_DIALOG_BUTTON,
     CLOSE_SEND_LIFE_DIALOG_BUTTON,
     COMPLETE_FINISH_BUTTON,
@@ -34,6 +38,12 @@ from config import (
     FAST_START_USE_BUTTON,
     FRIEND_BOTTOM_LEADERBOARD_REGION,
     FRIEND_BOTTOM_LEADERBOARD_TEMPLATE,
+    FRIEND_COOKIE_DIALOG_CLOSE_BUTTON,
+    FRIEND_COOKIE_DIALOG_REGION,
+    FRIEND_COOKIE_DIALOG_TEMPLATE,
+    FRIEND_INFO_DIALOG_CLOSE_BUTTON,
+    FRIEND_INFO_DIALOG_REGION,
+    FRIEND_INFO_DIALOG_TEMPLATE,
     FRIEND_SEND_LIFE_REGION,
     FRIEND_SEND_LIFE_TEMPLATE,
     FRIEND_TOP_LEADERBOARD_REGION,
@@ -57,8 +67,19 @@ from config import (
     RELIC_CLAIM_BUTTON,
     RELIC_CLOSE_BUTTON,
     RELIC_COMPLETE_BUTTON,
+    SEND_LIFE_CONFIRM_TIMEOUT,
+    SEND_LIFE_CONFIRM_DIALOG_REGION,
+    SEND_LIFE_CONFIRM_DIALOG_TEMPLATE,
+    SEND_LIFE_MAX_DURATION,
+    SEND_LIFE_SENT_DIALOG_REGION,
+    SEND_LIFE_SENT_DIALOG_TEMPLATE,
+    SEND_LIFE_SENT_TIMEOUT,
+    SEND_LIFE_STABLE_CHECK_INTERVAL,
+    SEND_LIFE_STABLE_DIFF_THRESHOLD,
+    SEND_LIFE_STABLE_MAX_CHECKS,
     START_BUTTON,
     CONNECTION_LOST_RELOAD_BUTTON,
+    FAILED_TO_RETRIEVE_DATA_CONFIRM_BUTTON,
 )
 from detection import detect_templates, detect_anti_bot_odd_cards, detect_stage
 from config import (
@@ -203,6 +224,12 @@ def accept_previous_rank_results():
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON[0], ACCEPT_PREVIOUS_RANK_RESULTS_BUTTON[1])
     time.sleep(random.uniform(0.8, 1.4))
 
+
+def confirm_previous_results():
+    print("📋 Confirming unreviewed Previous Results, heading to results screen...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_PREVIOUS_RESULTS_BUTTON[0], CONFIRM_PREVIOUS_RESULTS_BUTTON[1])
+    time.sleep(random.uniform(0.8, 1.4))
+
 def accept_too_many_treasures():
     print("💎 Accepting Too Many Treasures...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, ACCEPT_TOO_MANY_TREASURES_BUTTON[0], ACCEPT_TOO_MANY_TREASURES_BUTTON[1])
@@ -258,52 +285,193 @@ def handle_connection_lost():
     time.sleep(random.uniform(10, 15))
 
 
+def handle_failed_to_retrieve_data():
+    print("⚠️ Handling 'Failed to retrieve game data', tapping Confirm to retry...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, FAILED_TO_RETRIEVE_DATA_CONFIRM_BUTTON[0], FAILED_TO_RETRIEVE_DATA_CONFIRM_BUTTON[1])
+    time.sleep(random.uniform(3, 5))
+
+
 def handle_inactive():
     print("💤 Handling Inactive state...")
     safe_device_tap(DEVICE_IP, DEVICE_PORT, INACTIVE_RELOAD_BUTTON[0], INACTIVE_RELOAD_BUTTON[1])
     time.sleep(random.uniform(10, 15))
 
 
+def recover_friend_overlay(screen=None):
+    """Close one known friend overlay and report whether recovery was attempted."""
+    if screen is None:
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+    if detect_templates(screen, FRIEND_COOKIE_DIALOG_TEMPLATE, FRIEND_COOKIE_DIALOG_REGION):
+        print("🧹 Closing unexpected Friend's Cookie dialog...")
+        safe_device_tap(
+            DEVICE_IP,
+            DEVICE_PORT,
+            FRIEND_COOKIE_DIALOG_CLOSE_BUTTON[0],
+            FRIEND_COOKIE_DIALOG_CLOSE_BUTTON[1],
+        )
+        time.sleep(0.5)
+        return True
+    if detect_templates(screen, FRIEND_INFO_DIALOG_TEMPLATE, FRIEND_INFO_DIALOG_REGION):
+        print("🧹 Closing unexpected Friend's Info dialog...")
+        safe_device_tap(
+            DEVICE_IP,
+            DEVICE_PORT,
+            FRIEND_INFO_DIALOG_CLOSE_BUTTON[0],
+            FRIEND_INFO_DIALOG_CLOSE_BUTTON[1],
+        )
+        time.sleep(0.5)
+        return True
+    if detect_templates(screen, SEND_LIFE_SENT_DIALOG_TEMPLATE, SEND_LIFE_SENT_DIALOG_REGION):
+        print("🧹 Closing leftover message-sent dialog...")
+        safe_device_tap(
+            DEVICE_IP,
+            DEVICE_PORT,
+            CLOSE_SEND_LIFE_DIALOG_BUTTON[0],
+            CLOSE_SEND_LIFE_DIALOG_BUTTON[1],
+        )
+        time.sleep(0.5)
+        return True
+    if detect_templates(screen, SEND_LIFE_CONFIRM_DIALOG_TEMPLATE, SEND_LIFE_CONFIRM_DIALOG_REGION):
+        print("🧹 Cancelling leftover send-life confirmation...")
+        safe_device_tap(
+            DEVICE_IP,
+            DEVICE_PORT,
+            CANCEL_SEND_LIFE_BUTTON[0],
+            CANCEL_SEND_LIFE_BUTTON[1],
+        )
+        time.sleep(0.5)
+        return True
+    return False
+
+
+def _wait_for_template(template_files, region, timeout):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if detect_templates(screen, template_files, region):
+            return screen
+        time.sleep(0.2)
+    return None
+
+
+def _wait_for_template_to_clear(template_files, region, timeout):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if not detect_templates(screen, template_files, region):
+            return screen
+        time.sleep(0.2)
+    return None
+
+
+def _wait_for_stable_screen(region, screen=None):
+    """Poll screenshots until the given region stops changing (fling/momentum scroll settled)."""
+    previous = screen if screen is not None else device_capture_screen(DEVICE_IP, DEVICE_PORT)
+    x1, y1, x2, y2 = region
+    for _ in range(SEND_LIFE_STABLE_MAX_CHECKS):
+        time.sleep(SEND_LIFE_STABLE_CHECK_INTERVAL)
+        current = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        prev_crop = previous[y1:y2, x1:x2]
+        curr_crop = current[y1:y2, x1:x2]
+        if prev_crop.shape == curr_crop.shape and np.mean(
+            np.abs(prev_crop.astype(np.int16) - curr_crop.astype(np.int16))
+        ) < SEND_LIFE_STABLE_DIFF_THRESHOLD:
+            return current
+        previous = current
+    print("⚠️ Leaderboard still moving after settle checks; using last captured frame.")
+    return previous
+
+
+def _send_one_friend_life(match):
+    x, y, w, h = match
+    print("💌 Sending life to friend...")
+    safe_device_tap(DEVICE_IP, DEVICE_PORT, x + w // 2, y + h // 2)
+
+    if _wait_for_template(
+        SEND_LIFE_CONFIRM_DIALOG_TEMPLATE,
+        SEND_LIFE_CONFIRM_DIALOG_REGION,
+        SEND_LIFE_CONFIRM_TIMEOUT,
+    ) is None:
+        print("⚠️ Send-life confirmation did not appear. Skipping blind follow-up taps.")
+        return False
+
+    print("💌 Confirming send life...")
+    safe_device_tap(
+        DEVICE_IP,
+        DEVICE_PORT,
+        CONFIRM_SEND_LIFE_BUTTON[0],
+        CONFIRM_SEND_LIFE_BUTTON[1],
+    )
+
+    if _wait_for_template(
+        SEND_LIFE_SENT_DIALOG_TEMPLATE,
+        SEND_LIFE_SENT_DIALOG_REGION,
+        SEND_LIFE_SENT_TIMEOUT,
+    ) is None:
+        print("⚠️ Message-sent dialog did not appear. Skipping its fixed-coordinate tap.")
+        return False
+
+    print("💌 Closing message-sent dialog...")
+    safe_device_tap(
+        DEVICE_IP,
+        DEVICE_PORT,
+        CLOSE_SEND_LIFE_DIALOG_BUTTON[0],
+        CLOSE_SEND_LIFE_DIALOG_BUTTON[1],
+    )
+    if _wait_for_template_to_clear(
+        SEND_LIFE_SENT_DIALOG_TEMPLATE,
+        SEND_LIFE_SENT_DIALOG_REGION,
+        SEND_LIFE_CONFIRM_TIMEOUT,
+    ) is None:
+        print("⚠️ Message-sent dialog did not close.")
+        return False
+    return True
+
+
 def handle_send_friend_life():
     print("💌 Handling Send Friend Life...")
-    screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-    # Scroll leaderboard to top stop when find the "FRIEND LEADERBOARD" template
-    while True:
+    deadline = time.monotonic() + SEND_LIFE_MAX_DURATION
+
+    # Scroll leaderboard to top; give up if the expected screen never appears in time.
+    while time.monotonic() < deadline:
+        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if recover_friend_overlay(screen):
+            continue
         if detect_templates(screen, FRIEND_TOP_LEADERBOARD_TEMPLATE, FRIEND_TOP_LEADERBOARD_REGION):
             print("✅ Top of Friend Leaderboard reached.")
             break
         print("🔄 Scrolling up to find Send Friend Life...")
         safe_device_scroll(DEVICE_IP, DEVICE_PORT, LEADERBOARD_BOTTOM_POSITION[0], LEADERBOARD_BOTTOM_POSITION[1], direction="down", distance=300, duration=150)
         time.sleep(random.uniform(0.8, 1.4))
+    else:
+        print(f"⚠️ Friend leaderboard top not found within {SEND_LIFE_MAX_DURATION:.0f}s. Giving up.")
+        return False
+
+    # Scroll down, tap all send life buttons, stop when bottom leaderboard detected.
+    while time.monotonic() < deadline:
         screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
-    # Scroll down, tap all send life buttons, stop when bottom leaderboard detected
-    no_button_scroll_count = 0
-    while True:
-        screen = device_capture_screen(DEVICE_IP, DEVICE_PORT)
+        if recover_friend_overlay(screen):
+            continue
         if detect_templates(screen, FRIEND_BOTTOM_LEADERBOARD_TEMPLATE, FRIEND_BOTTOM_LEADERBOARD_REGION):
             print("✅ Bottom of Friend Leaderboard reached. Done sending lives.")
-            break
+            return True
         send_life_button_coords = detect_templates(screen, FRIEND_SEND_LIFE_TEMPLATE, FRIEND_SEND_LIFE_REGION)
         if send_life_button_coords:
-            no_button_scroll_count = 0
-            for x, y, w, h in send_life_button_coords:
-                print("💌 Sending life to friend...")
-                safe_device_tap(DEVICE_IP, DEVICE_PORT, x + w // 2, y + h // 2)
-                time.sleep(random.uniform(0.8, 1.4))
-                print("💌 Confirming send life...")
-                safe_device_tap(DEVICE_IP, DEVICE_PORT, CONFIRM_SEND_LIFE_BUTTON[0], CONFIRM_SEND_LIFE_BUTTON[1])
-                time.sleep(random.uniform(0.8, 1.4))
-                print("💌 Closing send life dialog...")
-                safe_device_tap(DEVICE_IP, DEVICE_PORT, CLOSE_SEND_LIFE_DIALOG_BUTTON[0], CLOSE_SEND_LIFE_DIALOG_BUTTON[1])
-                time.sleep(random.uniform(0.8, 1.4))
+            # List may still be settling from fling/momentum after the last scroll;
+            # re-detect on a stable frame before trusting the tap coordinates.
+            stable_screen = _wait_for_stable_screen(FRIEND_SEND_LIFE_REGION, screen)
+            send_life_button_coords = detect_templates(stable_screen, FRIEND_SEND_LIFE_TEMPLATE, FRIEND_SEND_LIFE_REGION)
+            if not send_life_button_coords:
+                print("🔄 Button moved after settling; re-checking...")
+                continue
+            _send_one_friend_life(send_life_button_coords[0])
         else:
-            no_button_scroll_count += 1
-            if no_button_scroll_count >= 30:
-                print("⚠️ No send life buttons found for 30 consecutive scrolls. Giving up.")
-                break
-            print(f"🔄 No send life buttons found, scrolling down... ({no_button_scroll_count}/30)")
+            print("🔄 No send life buttons found, scrolling down...")
             safe_device_scroll(DEVICE_IP, DEVICE_PORT, LEADERBOARD_TOP_POSITION[0], LEADERBOARD_TOP_POSITION[1], direction="up", distance=70, duration=150)
             time.sleep(random.uniform(0.8, 1.4))
+
+    print(f"⚠️ Send-life flow did not finish within {SEND_LIFE_MAX_DURATION:.0f}s. Giving up.")
+    return False
 
 
 def handle_quick_receive_and_send_lives():

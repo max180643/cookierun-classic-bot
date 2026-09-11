@@ -15,6 +15,47 @@ An automated bot for CookieRun Classic that uses ADB (Android Debug Bridge) and 
 - Anti-bot card challenge detection: identifies and taps the odd card out automatically
 - Debug screen saving for troubleshooting
 
+## Quickstart (macOS + BlueStacks)
+
+Tested and confirmed working end-to-end on macOS with BlueStacks Air (Apple Silicon). Takes ~20 minutes.
+
+1. **Install ADB:**
+   ```bash
+   brew install android-platform-tools
+   ```
+
+2. **Install BlueStacks Air** from [bluestacks.com](https://www.bluestacks.com) (Apple Silicon build), launch it.
+
+3. **Set the emulator resolution to 1280×720** — BlueStacks Settings → Display.
+
+4. **Enable ADB debugging in BlueStacks** — Settings → Advanced → toggle Android Debug Bridge on.
+
+5. **Install CookieRun Classic** inside BlueStacks (Play Store or sideload the APK).
+
+6. **Connect ADB to the emulator:**
+   ```bash
+   adb connect 127.0.0.1:5555
+   adb devices    # should show 127.0.0.1:5555   device
+   ```
+   If BlueStacks uses a different port, use that instead — check with `adb devices`.
+
+7. **Set up the Python environment:**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+8. **Confirm `config.py`** has `DEVICE_PORT` matching the port from step 6 (`5555` for BlueStacks; MuMu Player defaults to `7555`).
+
+9. **Run it:**
+   ```bash
+   source .venv/bin/activate
+   python3 main.py
+   ```
+
+Leave BlueStacks running with CookieRun Classic open before starting the bot. Stop the bot anytime with `Ctrl+C`.
+
 ## Requirements
 
 - Python 3.x
@@ -43,7 +84,7 @@ pip install -r requirements.txt
 
    ```python
    DEVICE_IP = "127.0.0.1"    # Your device's IP address
-   DEVICE_PORT = 16384        # Your device's ADB port
+   DEVICE_PORT = 5555         # Your device's ADB port
    ```
 
 3. **Ensure templates exist** — the `templates/` folder must contain the following detection images captured at 1280×720:
@@ -99,7 +140,7 @@ All constants are defined in `config.py`.
 | Constant                 | Default         | Description                                             |
 | ------------------------ | --------------- | ------------------------------------------------------- |
 | `DEVICE_IP`              | `127.0.0.1`     | ADB device IP address                                   |
-| `DEVICE_PORT`            | `16384`         | ADB device port                                         |
+| `DEVICE_PORT`            | `5555`          | ADB device port                                         |
 | `MATCH_THRESHOLD`        | `0.8`           | Minimum confidence for template match (0.0–1.0)         |
 | `TEMPLATE_DIR`           | `templates`     | Folder containing stage detection images                |
 | `SESSION_RESET_INTERVAL` | `(5400, 10800)` | Random interval in seconds (1.5–3 h) before app restart |
